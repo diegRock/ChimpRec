@@ -1,7 +1,7 @@
 import sys
 
 # change the path below !!!
-sys.path.append("E:")
+sys.path.append("/home/thomas-rixen/Documents/UCL/Master2/Master-thesis/local/ChimpRec/Code/chimplib")
 
 import sys
 import os

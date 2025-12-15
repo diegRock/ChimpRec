@@ -1,11 +1,12 @@
 import sys
 
 # change the path below !!!
-sys.path.append("E:")
+sys.path.append("/home/diego/Desktop/ChimpRec/ChimpRec/Code/chimplib/")
 
 import sys
 import os
 import cv2
+import subprocess
 import numpy as np
 from torchvision import transforms
 from PIL import Image
@@ -94,9 +95,10 @@ class modification_reader:
     And structures what has been read in a standardised
     format usable for further modifications.
     """
-    def __init__(self, text_file_path):
+    def __init__(self, text_file_path, rewrite=False):  # default: do NOT rewrite
         self.text_file_path = text_file_path
         self.swaps = {}
+        self.rewrite = rewrite
         self.read()
 
     def read(self):
@@ -107,9 +109,9 @@ class modification_reader:
             splitted_content = text_content.split("\n")
             for i in splitted_content:
                 if len(i) < 1: continue
-                if (":" in i): # name is present
+                if (":" in i):  # name is present
                     name = i.split(": ")[0]
-                    if name.upper() == "SWAP": # storing the swap data
+                    if name.upper() == "SWAP":  # storing the swap data
                         frame_count, swap_id_1, swap_id_2 = i.split(": ")[1].split(" ")
                         if (swap_id_1 in self.swaps.keys()): self.swaps[swap_id_1].append((frame_count, swap_id_2))
                         else: self.swaps[swap_id_1] = [(frame_count, swap_id_2)]
@@ -122,15 +124,13 @@ class modification_reader:
                     parsed_content.append([name, i.split(" ")])
                     unknown_id_index += 1
                     
-            text_file.close()
-
-        content = ""
-        for name, numbers in parsed_content:
-            content = f"{content}{name}: {' '.join(str(n) for n in numbers)}\n"
-        
-        with open(self.text_file_path, "w") as f:  # use "a" to append instead of overwrite
-            f.write(content)
-        f.close()
+        # Only rewrite if explicitly requested
+        if self.rewrite:
+            content = ""
+            for name, numbers in parsed_content:
+                content = f"{content}{name}: {' '.join(str(n) for n in numbers)}\n"
+            with open(self.text_file_path, "w") as f:
+                f.write(content)
 
         self.data = parsed_content
 
@@ -384,3 +384,22 @@ def perform_tracking(input_video_path, output_text_file_path, detection_model, t
 
         cap.release()
         cv2.destroyAllWindows()
+
+def mux_audio(original_video, processed_video, output_with_audio):
+    """
+    Combines the processed video stream with the original audio stream.
+    Keeps video as-is and copies audio without re-encoding.
+    Audio mapping is optional (won't fail if source has no audio).
+    """
+    cmd = [
+        "ffmpeg",
+        "-y",
+        "-i", processed_video,      # video from processed file
+        "-i", original_video,       # audio from original file
+        "-map", "0:v:0",
+        "-map", "1:a:0?",           # optional: first audio stream from input #1
+        "-c:v", "copy",
+        "-c:a", "copy",
+        output_with_audio,
+    ]
+    subprocess.run(cmd, check=True)

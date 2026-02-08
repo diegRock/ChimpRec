@@ -1,4 +1,4 @@
-# ChimpRec
+## ChimpRec
 
 This repository is the source code related to the Master thesis project realised by Théodore Cousin and Julien Demeure studying at UCLouvain (Belgium).
 
@@ -6,7 +6,7 @@ This thesis presents the development of a computer vision architecture to automa
 
 The following is the structure of the project. The central library, `chimplib`, serves as the core module used across the entire codebase. All other components in the project rely on and import functions from this library.
 
-```
+```plaintext
 Code/
 ├── Body_detection/
 │   └── Metric/
@@ -28,14 +28,25 @@ Models/
 
 All the dependencies necessary are listed in the file `./requirements.txt`. To execute the code. Create a python virtual environment, activate it, and install all the dependencies:
 
-```bash
-$python -m venv <venv name>
-$./<venv name>/Scripts/activate 
-$pip install -r requirements.txt
- ```
+**For Windows**
+
+```plaintext
+$python -m venv <venv name="">
+$./<venv name="">/Scripts/activate 
+$pip install -r Code/requirements.txt
+```
+
+**For Linux/MacOS**
+
+```plaintext
+python3.10 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r Code/requirements_linux.txt
+
+```
 
 ![Alt text](./cover.webp)
 
-# License
+## License
 
 This project is licensed under the [MIT License](LICENSE).

@@ -1,0 +1,79 @@
+# Flat schema expected by tracker_zoo.py:
+# tracker_args = { param: details["default"] for param, details in yaml_config.items() }
+
+max_age:
+  default: 150
+  desc: >
+    Maximum number of frames a track is kept "alive" without successful association
+    before it is deleted. Higher values help retain identities through temporary
+    occlusions, fast exits/returns, or camera panning. For fast-moving chimps that
+    often overlap or briefly leave the frame, 80–120 can reduce fragmentation. Too
+    high may keep wrong tracks alive if association goes bad after prolonged absence.
+
+n_init:
+  default: 15
+  desc: >
+    Number of consecutive successful associations needed to confirm a new track.
+    Increasing this (e.g., 4–5) reduces false-positive tracks and spurious IDs created
+    from transient detections. In crowded, overlapping scenes, a higher n_init
+    curbs instant confirmation on noisy boxes but may delay track start slightly.
+
+max_iou_distance:
+  default: 0.55
+  desc: >
+    IOU threshold for the motion-model gating during association. Detections with IOU
+    lower than this against a predicted track are considered mismatches. With handheld
+    footage and rapid subject motion, IOU can be unreliable; 0.6–0.7 is a balanced
+    range. Lower values (e.g., 0.5) reduce incorrect associations across crossings but
+    can increase misses when motion is erratic or the camera shakes.
+
+max_dist:
+  default: 0.18
+  desc: >
+    Maximum cosine distance for ReID (appearance) matching. Lower values are stricter,
+    reducing ID switches when chimps overlap or interact closely. If you still see
+    frequent swaps in tight interactions, try 0.12; if identities fail to reconnect
+    after long occlusions or appearance changes, relax to ~0.18–0.20.
+
+nn_budget:
+  default: 400
+  desc: >
+    Size of the appearance feature gallery per track. Larger budgets preserve more
+    historical features, aiding re-identification after occlusions or viewpoint changes.
+    For longer clips or frequent re-entries, 150–200 helps; very large budgets increase
+    memory and may slightly slow association.
+
+mc_lambda:
+  default: 0.999
+  desc: >
+    Exponential decay factor for motion compensation in StrongSORT’s camera motion
+    model. Values near 1.0 assume persistent camera motion and stabilize predictions
+    in handheld footage. Increase slightly (e.g., 0.998–0.999) for very shaky videos;
+    reduce (e.g., 0.995) if motion compensation seems to over-smooth and miss quick moves.
+
+ema_alpha:
+  default: 0.94
+  desc: >
+    Smoothing factor (exponential moving average) for track state (e.g., velocities,
+    centers). Higher values smooth jitter from shaky cameras, but too high can lag
+    behind fast motion and reduce association IOU. If tracks feel sluggish, lower to
+    ~0.88–0.90; if jittery, raise to ~0.94.
+
+min_confidence:
+  default: 0.6
+  desc: >
+    Tracker-side confidence gate for detections used in association. Detections below
+    this are ignored by the tracker. IMPORTANT: Ensure this is less than or equal to
+    the detection-side confidence_threshold you use in perform_tracking. For example,
+    if you pass confidence_threshold=0.55 into YOLO, set min_confidence <= 0.55 (e.g.,
+    0.5) so valid detections aren’t dropped inside the tracker. Raising this reduces
+    false tracks from weak detections; lowering helps retain small/partial boxes.
+
+nms_max_overlap:
+  default: 0.9
+  desc: >
+    Non-Maximum Suppression (NMS) IoU threshold inside the tracker (if used). Higher
+    values (close to 1.0) avoid suppressing overlapping detections, which is important
+    when multiple chimps are in contact or stacked. Lower values (e.g., 0.7–0.8) can
+    reduce duplicate boxes but risk removing legitimate close-by detections. Keep high
+    for dense, interactive scenes to prevent losing individuals in overlaps.

@@ -11,6 +11,9 @@ import torch
 from pathlib import Path
 from ultralytics import YOLO
 from tqdm import tqdm
+import tempfile
+import subprocess
+
 
 # Use the tracker factory from boxmot
 from boxmot.tracker_zoo import create_tracker
@@ -341,3 +344,33 @@ def perform_tracking(input_video_path, output_text_file_path, detection_model, t
 
     cap.release()
     cv2.destroyAllWindows()
+
+
+def mux_audio(original_video, processed_video, output_with_audio):
+    """
+    Combines processed video stream with the original audio stream.
+    If output_with_audio equals processed_video, writes to a temp file
+    and atomically replaces the processed file on success.
+    """
+    same_path = os.path.abspath(processed_video) == os.path.abspath(output_with_audio)
+    temp_out = output_with_audio
+    if same_path:
+        suffix = ".mux.tmp.mp4"
+        temp_fd, temp_out = tempfile.mkstemp(suffix=suffix, dir=os.path.dirname(output_with_audio))
+        os.close(temp_fd)
+
+    cmd = [
+        "ffmpeg",
+        "-y",
+        "-i", processed_video,      # video from processed file
+        "-i", original_video,       # audio from original file
+        "-map", "0:v:0",
+        "-map", "1:a:0?",
+        "-c:v", "copy",
+        "-c:a", "copy",
+        temp_out,
+    ]
+    subprocess.run(cmd, check=True)
+
+    if same_path:
+        os.replace(temp_out, output_with_audio)

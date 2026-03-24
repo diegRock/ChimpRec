@@ -1,0 +1,20 @@
+The following modules were not unloaded:
+  (Use "module --force purge" to unload all):
+
+  1) databases   2) releases/2023a   3) tis/2025
+	Fusing model...
+Processing video: 0it [00:00, ?it/s]Processing video: 0it [00:00, ?it/s]
+Tracking results saved to ../../../ChimpVideo/Output/20241019-14h29.txt
+Columns: frame_id, track_id, top, left, width, height, score, -1, -1, -1
+Making a visualization video...
+Overlaying tracking results: 0it [00:00, ?it/s]Overlaying tracking results: 0it [00:00, ?it/s]
+Traceback (most recent call last):
+  File "/home/users/t/r/trixen/ChimpRec/Code/Tracking/ChimpUFE/demo_camera_trap.py", line 314, in <module>
+    main(args)
+  File "/home/users/t/r/trixen/ChimpRec/Code/Tracking/ChimpUFE/demo_camera_trap.py", line 309, in main
+    visualize_results(args.video_path, results, save_vid_path)
+  File "/home/users/t/r/trixen/ChimpRec/Code/Tracking/ChimpUFE/demo_camera_trap.py", line 258, in visualize_results
+    save_vid_path = save_vid_path.rename(save_vid_path.parent / f'uncompr_{save_vid_path.name}')
+  File "/home/ucl/ingi/trixen/python/lib/python3.10/pathlib.py", line 1234, in rename
+    self._accessor.rename(self, target)
+FileNotFoundError: [Errno 2] No such file or directory: '/home/users/t/r/trixen/ChimpRec/ChimpVideo/Output/vis/20241019-14h29.MP4' -> '/home/users/t/r/trixen/ChimpRec/ChimpVideo/Output/vis/uncompr_20241019-14h29.MP4'

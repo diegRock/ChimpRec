@@ -1,8 +1,8 @@
 import sys
 
 # Add your chimplib and boxmot repo to PYTHONPATH
-sys.path.append("/etinfo/users/2024/trixen/Documents/Master_thesis/ChimpRec/Code/chimplib")
-sys.path.append("/etinfo/users/2024/trixen/Documents/Master_thesis/ChimpRec/Code/chimplib/boxmot")
+sys.path.append("/home/ucl/ingi/trixen/ChimpRec/Code/chimplib")
+sys.path.append("/home/ucl/ingi/trixen/ChimpRec/Code/chimplib/boxmot")
 
 import os
 import cv2
@@ -13,13 +13,15 @@ from ultralytics import YOLO
 from tqdm import tqdm
 import tempfile
 import subprocess
+import shutil
 
 
 # Use the tracker factory from boxmot
 from boxmot.tracker_zoo import create_tracker
 
 # Optional: point to the StrongSORT YAML config inside your boxmot clone
-BOXMOT_ROOT = "/etinfo/users/2024/trixen/Documents/Master_thesis/ChimpRec/Code/chimplib/boxmot"
+BOXMOT_ROOT = "/home/ucl/ingi/trixen/ChimpRec/Code/chimplib/boxmot"
+FFMPEG_BIN = os.environ.get("FFMPEG_BIN", "ffmpeg")
 STRONGSORT_CFG = os.path.join(
     BOXMOT_ROOT, "boxmot", "trackers", "strongsort", "configs", "strongsort.yaml"
 )
@@ -254,48 +256,67 @@ def draw_bbox_from_file(file_path, input_video_path, output_video_path, annotati
     cap.release()
     out.release()
 
-def build_strongsort(reid_weights=None, device=None, fp16=False,
-                     tracker_config_path=None):
+def build_strongsort(reid_weights=None, device=None, fp16=False, tracker_config_path=None):
     """
     Build a StrongSORT tracker via boxmot.tracker_zoo.create_tracker.
-    - reid_weights: str | Path to OSNet weights .pt (or None)
-    - device: 'cuda' or 'cpu'
-    - fp16: use half precision for the reid model
-    - tracker_config_path: path to strongsort.yaml (optional)
+    Robustly handles Path objects and config fallbacks.
     """
+    # 0. Normalize device
     if device is None:
-        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        if torch.cuda.is_available():
+            # Prefer first visible GPU; boxmot wants "0" not "cuda"
+            device = "0"
+        else:
+            device = "cpu"
+    elif isinstance(device, str) and device.lower() == "cuda":
+        # Fix mis-specified device strings like "cuda"
+        device = "0" if torch.cuda.is_available() else "cpu"
 
-    # Normalize reid_weights to Path or None
+    # 1. Handle ReID Weights
     if reid_weights:
         reid_weights = Path(reid_weights)
         if not reid_weights.exists():
             print(f"[StrongSORT] Warning: ReID weights not found at {reid_weights}. Falling back to defaults.")
             reid_weights = None
-    else:
-        reid_weights = None
+    
+    # 2. Handle Config Path
+    if tracker_config_path:
+        if os.path.exists(tracker_config_path):
+            tracker_config_path = Path(tracker_config_path)
+        else:
+            print(f"[StrongSORT] Warning: Config not found at {tracker_config_path}. Using internal default.")
+            tracker_config_path = None
 
-    # If no config provided, try to auto-use the repo default
-    if tracker_config_path is None and os.path.exists(STRONGSORT_CFG):
-        tracker_config_path = STRONGSORT_CFG
-
-    tracker = create_tracker(
-        'strongsort',
-        tracker_config=tracker_config_path if tracker_config_path and os.path.exists(tracker_config_path) else None,
-        reid_weights=reid_weights,
-        device=device,
-        half=fp16
-    )
+    # 3. Create Tracker with Fallback
+    try:
+        tracker = create_tracker(
+            tracker_type='strongsort',
+            tracker_config=tracker_config_path,
+            reid_weights=reid_weights,
+            device=device,
+            half=fp16
+        )
+    except ValueError as e:
+        print(f"[StrongSORT] ValueError with custom config: {e}")
+        print("[StrongSORT] Retrying with DEFAULT configuration...")
+        tracker = create_tracker(
+            tracker_type='strongsort',
+            tracker_config=None,
+            reid_weights=reid_weights,
+            device=device,
+            half=fp16
+        )
+        
     return tracker
 
-def perform_tracking(input_video_path, output_text_file_path, detection_model, tracker, confidence_threshold, model_feature_extraction=None):
+def perform_tracking(input_video_path, output_text_file_path, detection_model, tracker, confidence_threshold,
+                     device="cpu", use_half=False, model_feature_extraction=None):
     """
     StrongSORT-based tracking with boxmot interface.
     - detection_model: ultralytics.YOLO instance (YOLOv8)
     - tracker: object from build_strongsort(...)
-    Writes each frame as:
-        #
-        <track_id> <x1> <y1> <x2> <y2>
+    - device: "cuda:0" or "cpu"
+    - use_half: bool to enable FP16 on CUDA
     """
     cap = cv2.VideoCapture(input_video_path)
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -305,7 +326,12 @@ def perform_tracking(input_video_path, output_text_file_path, detection_model, t
         while ret:
             file_improve_tracking.write("#\n")
 
-            preds = detection_model.predict(frame, verbose=False)[0]
+            preds = detection_model.predict(
+                frame,
+                device=device,
+                half=use_half,
+                verbose=False
+            )[0]
 
             outputs = np.empty((0, 6))
             if preds.boxes is not None and len(preds.boxes) > 0:
@@ -322,14 +348,12 @@ def perform_tracking(input_video_path, output_text_file_path, detection_model, t
                 cls = cls[keep]
 
                 if xyxy.shape[0] > 0:
-                    # dets: [x1, y1, x2, y2, conf, cls]
                     dets = np.hstack([xyxy, conf, cls])
                     outputs = tracker.update(dets, frame)
                 else:
                     outputs = np.empty((0, 6))
 
             if outputs is not None and len(outputs) > 0:
-                # outputs: [x1, y1, x2, y2, track_id, score, (cls? ...)]
                 for det in outputs:
                     x1, y1, x2, y2 = det[:4]
                     track_id = det[4]
@@ -345,32 +369,35 @@ def perform_tracking(input_video_path, output_text_file_path, detection_model, t
     cap.release()
     cv2.destroyAllWindows()
 
-
 def mux_audio(original_video, processed_video, output_with_audio):
-    """
-    Combines processed video stream with the original audio stream.
-    If output_with_audio equals processed_video, writes to a temp file
-    and atomically replaces the processed file on success.
-    """
-    same_path = os.path.abspath(processed_video) == os.path.abspath(output_with_audio)
-    temp_out = output_with_audio
-    if same_path:
-        suffix = ".mux.tmp.mp4"
-        temp_fd, temp_out = tempfile.mkstemp(suffix=suffix, dir=os.path.dirname(output_with_audio))
-        os.close(temp_fd)
+    # find ffmpeg
+    ffmpeg_path = shutil.which(FFMPEG_BIN)
+    if not ffmpeg_path:
+        print(f"[mux_audio] ffmpeg not found (tried '{FFMPEG_BIN}'); skipping audio mux.")
+        return
+
+    same_path = os.path.abspath(output_with_audio) == os.path.abspath(processed_video)
+    temp_fd, temp_out = tempfile.mkstemp(suffix=".mp4")
+    os.close(temp_fd)
 
     cmd = [
-        "ffmpeg",
-        "-y",
-        "-i", processed_video,      # video from processed file
-        "-i", original_video,       # audio from original file
+        ffmpeg_path, "-y",
+        "-i", processed_video,
+        "-i", original_video,
+        "-c", "copy",
         "-map", "0:v:0",
         "-map", "1:a:0?",
-        "-c:v", "copy",
-        "-c:a", "copy",
+        "-shortest",
         temp_out,
     ]
-    subprocess.run(cmd, check=True)
+    try:
+        subprocess.run(cmd, check=True)
+    except subprocess.SubprocessError as e:
+        print(f"[mux_audio] ffmpeg failed: {e}; leaving processed video without audio.")
+        os.remove(temp_out)
+        return
 
     if same_path:
         os.replace(temp_out, output_with_audio)
+    else:
+        os.rename(temp_out, output_with_audio)

@@ -1,0 +1,6 @@
+The following modules were not unloaded:
+  (Use "module --force purge" to unload all):
+
+  1) databases   2) releases/2023a   3) tis/2025
+	Fusing model...
+File ../../../ChimpVideo/Output/20241019-14h29.txt already exists. Skipping...

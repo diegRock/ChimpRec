@@ -1,15 +1,62 @@
 import os
+import json
 import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+from datetime import datetime
 from scipy.optimize import linear_sum_assignment
 from tqdm import tqdm
-import matplotlib.pyplot as plt
-from dashboard import ExperimentLogger  # Import the logger
 
-# ==============================================================================
-# 1. THE HOTA CLASS
-# ==============================================================================
+# ---------------------------------------------------------------------
+# Optional: adjust these paths if you want logs/plots elsewhere
+# ---------------------------------------------------------------------
+HISTORY_FILE = os.path.join("results", "history.json")
+PLOTS_DIR = os.path.join("results", "plots")
+os.makedirs(os.path.dirname(HISTORY_FILE), exist_ok=True)
+os.makedirs(PLOTS_DIR, exist_ok=True)
+
+# =============================================================================
+# Logger (self-contained; remove if you already import from elsewhere)
+# =============================================================================
+class ExperimentLogger:
+    def __init__(self):
+        self.history = self._load_history()
+
+    def _load_history(self):
+        if not os.path.exists(HISTORY_FILE):
+            return []
+        with open(HISTORY_FILE, 'r') as f:
+            try:
+                return json.load(f)
+            except json.JSONDecodeError:
+                return []
+
+    def log_run(self, video_name, model_version, metrics):
+        entry = {
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "video_name": video_name,
+            "model_version": model_version,
+            "metrics": metrics
+        }
+        self.history.append(entry)
+        with open(HISTORY_FILE, 'w') as f:
+            json.dump(self.history, f, indent=4)
+        print(f"✅ Run logged for {video_name} ({model_version})")
+
+    def get_dataframe(self):
+        flat_data = []
+        for entry in self.history:
+            row = entry.copy()
+            for k, v in entry['metrics'].items():
+                row[k] = v
+            del row['metrics']
+            flat_data.append(row)
+        return pd.DataFrame(flat_data)
+
+# =============================================================================
+# HOTA core
+# =============================================================================
 class HOTA:
-    """Class which implements the HOTA metrics."""
     def __init__(self):
         self.array_labels = np.arange(0.05, 0.99, 0.05)
         self.integer_array_fields = ['HOTA_TP', 'HOTA_FN', 'HOTA_FP']
@@ -18,14 +65,12 @@ class HOTA:
         self.fields = self.float_array_fields + self.integer_array_fields + self.float_fields
 
     def eval_sequence(self, data):
-        """Calculates the HOTA metrics for one sequence"""
         res = {}
         for field in self.float_array_fields + self.integer_array_fields:
             res[field] = np.zeros((len(self.array_labels)), dtype=np.float64)
         for field in self.float_fields:
             res[field] = 0
 
-        # Short circuit for empty files
         if data['num_tracker_dets'] == 0:
             res['HOTA_FN'] = data['num_gt_dets'] * np.ones((len(self.array_labels)), dtype=np.float64)
             res['LocA'] = np.ones((len(self.array_labels)), dtype=np.float64)
@@ -41,7 +86,6 @@ class HOTA:
         gt_id_count = np.zeros((data['num_gt_ids'], 1))
         tracker_id_count = np.zeros((1, data['num_tracker_ids']))
 
-        # Global Association Loop
         for t, (gt_ids_t, tracker_ids_t) in enumerate(zip(data['gt_ids'], data['tracker_ids'])):
             similarity = data['similarity_scores'][t]
             sim_iou_denom = similarity.sum(0)[np.newaxis, :] + similarity.sum(1)[:, np.newaxis] - similarity
@@ -55,14 +99,13 @@ class HOTA:
         global_alignment_score = potential_matches_count / (gt_id_count + tracker_id_count - potential_matches_count)
         matches_counts = [np.zeros_like(potential_matches_count) for _ in self.array_labels]
 
-        # Timestep Loop
         for t, (gt_ids_t, tracker_ids_t) in enumerate(zip(data['gt_ids'], data['tracker_ids'])):
             if len(gt_ids_t) == 0:
-                for a, alpha in enumerate(self.array_labels):
+                for a, _ in enumerate(self.array_labels):
                     res['HOTA_FP'][a] += len(tracker_ids_t)
                 continue
             if len(tracker_ids_t) == 0:
-                for a, alpha in enumerate(self.array_labels):
+                for a, _ in enumerate(self.array_labels):
                     res['HOTA_FN'][a] += len(gt_ids_t)
                 continue
 
@@ -82,8 +125,7 @@ class HOTA:
                     res['LocA'][a] += sum(similarity[alpha_match_rows, alpha_match_cols])
                     matches_counts[a][gt_ids_t[alpha_match_rows], tracker_ids_t[alpha_match_cols]] += 1
 
-        # Calculate Scores
-        for a, alpha in enumerate(self.array_labels):
+        for a, _ in enumerate(self.array_labels):
             matches_count = matches_counts[a]
             ass_a = matches_count / np.maximum(1, gt_id_count + tracker_id_count - matches_count)
             res['AssA'][a] = np.sum(matches_count * ass_a) / np.maximum(1, res['HOTA_TP'][a])
@@ -104,37 +146,30 @@ class HOTA:
         res['HOTA(0)'] = res['HOTA'][0]
         return res
 
-# ==============================================================================
-# 2. HELPER FUNCTIONS
-# ==============================================================================
-
+# =============================================================================
+# Helpers
+# =============================================================================
 def calculate_iou(box1, box2):
     x1 = max(box1[0], box2[0])
     y1 = max(box1[1], box2[1])
     x2 = min(box1[2], box2[2])
     y2 = min(box1[3], box2[3])
-
-    intersection_area = max(0, x2 - x1) * max(0, y2 - y1)
-    
-    box1_area = (box1[2] - box1[0]) * (box1[3] - box1[1])
-    box2_area = (box2[2] - box2[0]) * (box2[3] - box2[1])
-    
-    union_area = box1_area + box2_area - intersection_area
-    if union_area == 0: return 0
-    return intersection_area / union_area
+    inter = max(0, x2 - x1) * max(0, y2 - y1)
+    area1 = (box1[2] - box1[0]) * (box1[3] - box1[1])
+    area2 = (box2[2] - box2[0]) * (box2[3] - box2[1])
+    union = area1 + area2 - inter
+    return inter / union if union > 0 else 0
 
 def parse_chimp_file(filepath):
-    """Parses custom format. Robust to empty lines and headers."""
     with open(filepath, 'r') as f:
         lines = f.readlines()
-
     frames = []
     current_frame_dets = []
-    
     lines = [l.strip() for l in lines if l.strip()]
-    if not lines: return []
-    if lines[0] == '#': lines = lines[1:]
-
+    if not lines:
+        return []
+    if lines[0] == '#':
+        lines = lines[1:]
     for line in lines:
         if line == '#':
             frames.append(current_frame_dets)
@@ -145,126 +180,106 @@ def parse_chimp_file(filepath):
                 obj_id = parts[0]
                 coords = [float(x) for x in parts[1:5]]
                 current_frame_dets.append({'id': obj_id, 'box': coords})
-    
     if current_frame_dets:
         frames.append(current_frame_dets)
-
     return frames
 
 def plot_single_run(results, save_path):
-    """Visualizes HOTA metrics across Alpha thresholds for a single run."""
     alpha_range = np.arange(0.05, 0.99, 0.05)
-    
     plt.figure(figsize=(10, 6))
-    plt.plot(alpha_range, results['HOTA'], label='HOTA (Combined)', color='b', linewidth=3)
-    plt.plot(alpha_range, results['DetA'], label='DetA (Detection)', color='g', linestyle='--')
-    plt.plot(alpha_range, results['AssA'], label='AssA (Association)', color='r', linestyle='--')
-    
+    plt.plot(alpha_range, results['HOTA'], label='HOTA', color='b', linewidth=3)
+    plt.plot(alpha_range, results['DetA'], label='DetA', color='g', linestyle='--')
+    plt.plot(alpha_range, results['AssA'], label='AssA', color='r', linestyle='--')
     plt.xlabel('IoU Threshold (Alpha)')
     plt.ylabel('Score (0-1)')
     plt.title('Performance vs. Overlap Threshold')
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.ylim(0, 1.05)
-    
-    # Ensure directory exists
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     plt.savefig(save_path)
     print(f"🖼️  Plot saved to {save_path}")
     plt.close()
 
-# ==============================================================================
-# 3. MAIN EVALUATION LOGIC
-# ==============================================================================
+# =============================================================================
+# Chunked evaluation
+# =============================================================================
+def _slice_frames(frames, start_idx, end_idx):
+    return frames[start_idx:end_idx]
 
-def run_evaluation(tracker_file, gt_file, video_name, model_version, plot=True):
-    print(f"📊 Processing {video_name}...")
-    
-    # 1. Parse
+def run_evaluation_chunked(tracker_file, gt_file, video_name, model_version,
+                           chunks=(0.0, 0.33, 0.66, 1.0), plot_single=False):
     pred_frames = parse_chimp_file(tracker_file)
     gt_frames = parse_chimp_file(gt_file)
-
     num_frames = min(len(pred_frames), len(gt_frames))
     if num_frames == 0:
-        print("❌ Error: No valid frames found in one or both files.")
-        return
-
+        raise ValueError("No valid frames in pred/gt")
     pred_frames = pred_frames[:num_frames]
     gt_frames = gt_frames[:num_frames]
 
-    # 2. Map IDs
-    all_gt_ids = set(d['id'] for f in gt_frames for d in f)
-    all_pred_ids = set(d['id'] for f in pred_frames for d in f)
-    gt_id_map = {name: i for i, name in enumerate(sorted(list(all_gt_ids)))}
-    pred_id_map = {name: i for i, name in enumerate(sorted(list(all_pred_ids)))}
+    chunk_indices = []
+    for i in range(len(chunks) - 1):
+        start = int(chunks[i] * num_frames)
+        end = int(chunks[i + 1] * num_frames)
+        if end > start:
+            chunk_indices.append((start, end))
 
-    data = {
-        'num_tracker_dets': 0,
-        'num_gt_dets': 0,
-        'num_tracker_ids': len(all_pred_ids),
-        'num_gt_ids': len(all_gt_ids),
-        'gt_ids': [], 'tracker_ids': [], 'similarity_scores': []
-    }
+    chunk_metrics = []
+    for (start, end) in chunk_indices:
+        cf_pred = _slice_frames(pred_frames, start, end)
+        cf_gt = _slice_frames(gt_frames, start, end)
 
-    # 3. Calculate IoU
-    for t in tqdm(range(num_frames), desc="Calculating IoU"):
-        gts = gt_frames[t]
-        preds = pred_frames[t]
+        all_gt_ids = set(d['id'] for f in cf_gt for d in f)
+        all_pred_ids = set(d['id'] for f in cf_pred for d in f)
+        gt_id_map = {name: i for i, name in enumerate(sorted(list(all_gt_ids)))}
+        pred_id_map = {name: i for i, name in enumerate(sorted(list(all_pred_ids)))}
 
-        data['num_gt_dets'] += len(gts)
-        data['num_tracker_dets'] += len(preds)
+        data = {
+            'num_tracker_dets': 0,
+            'num_gt_dets': 0,
+            'num_tracker_ids': len(all_pred_ids),
+            'num_gt_ids': len(all_gt_ids),
+            'gt_ids': [], 'tracker_ids': [], 'similarity_scores': []
+        }
 
-        gt_ids_arr = np.array([gt_id_map[d['id']] for d in gts], dtype=np.int32)
-        pred_ids_arr = np.array([pred_id_map[d['id']] for d in preds], dtype=np.int32)
-        
-        data['gt_ids'].append(gt_ids_arr)
-        data['tracker_ids'].append(pred_ids_arr)
+        for t in tqdm(range(len(cf_pred)), desc=f"IoU chunk {start}-{end}", leave=False):
+            gts = cf_gt[t]
+            preds = cf_pred[t]
+            data['num_gt_dets'] += len(gts)
+            data['num_tracker_dets'] += len(preds)
 
-        iou_matrix = np.zeros((len(gts), len(preds)))
-        for i, gt in enumerate(gts):
-            for j, pred in enumerate(preds):
-                iou_matrix[i, j] = calculate_iou(gt['box'], pred['box'])
-        
-        data['similarity_scores'].append(iou_matrix)
+            gt_ids_arr = np.array([gt_id_map[d['id']] for d in gts], dtype=np.int32)
+            pred_ids_arr = np.array([pred_id_map[d['id']] for d in preds], dtype=np.int32)
+            data['gt_ids'].append(gt_ids_arr)
+            data['tracker_ids'].append(pred_ids_arr)
 
-    # 4. Run HOTA
-    hota_metric = HOTA()
-    results = hota_metric.eval_sequence(data)
+            iou_matrix = np.zeros((len(gts), len(preds)))
+            for i, gt in enumerate(gts):
+                for j, pred in enumerate(preds):
+                    iou_matrix[i, j] = calculate_iou(gt['box'], pred['box'])
+            data['similarity_scores'].append(iou_matrix)
 
-    # 5. Extract Mean Scores
-    final_metrics = {
-        'HOTA': float(np.mean(results['HOTA'])),
-        'DetA': float(np.mean(results['DetA'])),
-        'AssA': float(np.mean(results['AssA'])),
-        'DetRe': float(np.mean(results['DetRe'])),
-        'DetPr': float(np.mean(results['DetPr'])),
-        'AssRe': float(np.mean(results['AssRe'])),
-        'AssPr': float(np.mean(results['AssPr'])),
-    }
+        hota_metric = HOTA()
+        results = hota_metric.eval_sequence(data)
+        final_metrics = {
+            'HOTA': float(np.mean(results['HOTA'])),
+            'DetA': float(np.mean(results['DetA'])),
+            'AssA': float(np.mean(results['AssA'])),
+            'DetRe': float(np.mean(results['DetRe'])),
+            'DetPr': float(np.mean(results['DetPr'])),
+            'AssRe': float(np.mean(results['AssRe'])),
+            'AssPr': float(np.mean(results['AssPr'])),
+        }
+        chunk_metrics.append(final_metrics)
 
-    print("\n--- Evaluation Results ---")
-    for k, v in final_metrics.items():
-        print(f"{k}: {v:.3f}")
+        if plot_single:
+            plot_path = f"{PLOTS_DIR}/{video_name}_{model_version}_chunk_{start}_{end}.png"
+            plot_single_run(results, plot_path)
 
-    # 6. Log to History
+    keys = chunk_metrics[0].keys()
+    mean_metrics = {k: float(np.mean([cm[k] for cm in chunk_metrics])) for k in keys}
+    std_metrics = {k + "_std": float(np.std([cm[k] for cm in chunk_metrics])) for k in keys}
+
     logger = ExperimentLogger()
-    logger.log_run(video_name, model_version, final_metrics)
-
-    # 7. Plot Single Run
-    if plot:
-        plot_path = f"results/plots/{video_name}_{model_version}.png"
-        plot_single_run(results, plot_path)
-
-# ==============================================================================
-# RUN
-# ==============================================================================
-if __name__ == "__main__":
-    # --- CONFIGURATION ---
-    VIDEO_NAME = "13h28_StrongSort_V4"  # Change this to your video name (without extension)
-    MODEL_VERSION = "strongsort_v4"  # Change this when you improve the model!
-    
-    # Paths based on your new directory structure
-    TRACKER_PATH = f"data/predictions/{VIDEO_NAME}.txt"
-    GT_PATH = f"data/ground_truth/{VIDEO_NAME}.txt"
-    
-    run_evaluation(TRACKER_PATH, GT_PATH, VIDEO_NAME, MODEL_VERSION, plot=True)
+    logger.log_run(video_name, model_version, {**mean_metrics, **std_metrics})
+    return mean_metrics, std_metrics, chunk_metrics

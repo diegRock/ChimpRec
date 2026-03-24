@@ -1,7 +1,7 @@
 import sys
 
 # change the path below !!!
-sys.path.append("/home/diego/Desktop/ChimpRec/ChimpRec/Code/chimplib/")
+sys.path.append("../../chimplib/")
 import tempfile
 import sys
 import os
@@ -520,7 +520,8 @@ def mux_audio(original_video, processed_video, output_with_audio):
         "-map", "0:v:0",
         "-map", "1:a:0?",
         "-c:v", "copy",
-        "-c:a", "copy",
+        "-c:a", "aac",              # re-encode audio to AAC
+        "-b:a", "192k",             # (optional: set audio bitrate)
         temp_out,
     ]
     subprocess.run(cmd, check=True)

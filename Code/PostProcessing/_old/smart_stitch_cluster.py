@@ -1,0 +1,335 @@
+import os
+import sys
+import cv2
+import torch
+import numpy as np
+from PIL import Image
+from tqdm import tqdm
+from torchvision import transforms
+
+# --- 1. SETUP PATHS TO CHIMPUFE ---
+# We add the ChimpUFE folder to system path so we can import its modules
+CHIMP_REPO_PATH = os.path.join(os.getcwd(), "ChimpUFE")
+sys.path.append(CHIMP_REPO_PATH)
+
+try:
+    from src.face_embedder.vision_transformer import vit_base
+    USE_LOCAL_MODEL = True
+except ImportError:
+    USE_LOCAL_MODEL = False
+    print("⚠️ Local import failed. Will try timm/hub.")
+
+# --- 2. THE MODEL WRAPPER (FIXED) ---
+class ChimpUFEWrapper:
+    def __init__(self, weights_path, device='cuda'):
+        self.device = device if torch.cuda.is_available() else 'cpu'
+        print(f"🔄 Loading ChimpUFE from {weights_path}...")
+        
+        # 1. Instantiate Model
+        if USE_LOCAL_MODEL:
+            self.model = vit_base(patch_size=14)
+        else:
+            raise ImportError("Could not import vit_base from src/face_embedder/. Check paths.")
+        
+        # 2. Load Checkpoint
+        checkpoint = torch.load(weights_path, map_location='cpu')
+        
+        if "teacher" in checkpoint: state_dict = checkpoint["teacher"]
+        elif "model" in checkpoint: state_dict = checkpoint["model"]
+        else: state_dict = checkpoint
+
+        # --- 3. BLIND ZIP MATCHING (With LayerScale Filtering) ---
+        new_state_dict = {}
+        
+        # A. Separate "Block" keys
+        ckpt_block_keys = []
+        model_block_keys = []
+        
+        # Get all keys from the initialized model
+        model_keys_all = list(self.model.state_dict().keys())
+        for k in model_keys_all:
+            if "blocks." in k:
+                model_block_keys.append(k)
+
+        # Get all keys from checkpoint
+        for k in state_dict.keys():
+            k_clean = k.replace("backbone.", "").replace("module.", "")
+            if "blocks." in k_clean:
+                # CRITICAL FIX: Filter out LayerScale keys (ls1, ls2) which don't exist in local model
+                if "ls1" in k_clean or "ls2" in k_clean:
+                    continue
+                ckpt_block_keys.append(k) # Keep original key name
+
+        # B. Sort them to align them
+        model_block_keys.sort()
+        ckpt_block_keys.sort()
+        
+        # C. Verify Counts
+        print(f"DEBUG: Model Block Params: {len(model_block_keys)}")
+        print(f"DEBUG: Checkpoint Block Params (Filtered): {len(ckpt_block_keys)}")
+        
+        if len(model_block_keys) != len(ckpt_block_keys):
+            print("⚠️ WARNING: Parameter counts still differ. Mismatches likely.")
+        
+        # Map 1-to-1
+        limit = min(len(model_block_keys), len(ckpt_block_keys))
+        for i in range(limit):
+            m_key = model_block_keys[i]
+            c_key = ckpt_block_keys[i]
+            new_state_dict[m_key] = state_dict[c_key]
+
+        # D. Handle Non-Block Keys
+        for k, v in state_dict.items():
+            k_clean = k.replace("backbone.", "").replace("module.", "")
+            if "blocks." not in k_clean:
+                new_state_dict[k_clean] = v
+
+        # 4. Load State Dict
+        msg = self.model.load_state_dict(new_state_dict, strict=False)
+        
+        real_missing = [k for k in msg.missing_keys if "head" not in k]
+        print(f"✅ Model Loaded. Real missing keys: {len(real_missing)}")
+
+        self.model.to(self.device)
+        self.model.eval()
+
+        self.transform = transforms.Compose([
+            transforms.Resize((224, 224)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        ])
+
+    def get_embedding(self, cv2_image):
+        try:
+            if cv2_image is None or cv2_image.size == 0: return None
+            img = Image.fromarray(cv2.cvtColor(cv2_image, cv2.COLOR_BGR2RGB))
+            input_tensor = self.transform(img).unsqueeze(0).to(self.device)
+            with torch.no_grad():
+                embedding = self.model(input_tensor)
+            return embedding.cpu().numpy().flatten()
+        except Exception:
+            return None
+
+    def compare_tracks(self, crops_A, crops_B):
+        if not crops_A or not crops_B: return 0.0
+
+        step_A = max(1, len(crops_A)//5)
+        step_B = max(1, len(crops_B)//5)
+        samples_A = crops_A[::step_A]
+        samples_B = crops_B[::step_B]
+
+        embeddings_A = [self.get_embedding(img) for img in samples_A]
+        embeddings_B = [self.get_embedding(img) for img in samples_B]
+        embeddings_A = [e for e in embeddings_A if e is not None]
+        embeddings_B = [e for e in embeddings_B if e is not None]
+
+        if not embeddings_A or not embeddings_B: return 0.0
+
+        best_sim = -1.0
+        for emb_a in embeddings_A:
+            for emb_b in embeddings_B:
+                norm_a = np.linalg.norm(emb_a)
+                norm_b = np.linalg.norm(emb_b)
+                if norm_a > 0 and norm_b > 0:
+                    sim = np.dot(emb_a, emb_b) / (norm_a * norm_b)
+                    if sim > best_sim: best_sim = sim
+        return best_sim
+
+# --- 3. HELPER FUNCTIONS ---
+
+def get_track_crops(video_path, track_data, num_samples=5):
+    """
+    Extracts 'num_samples' images of the chimp from the video.
+    We prioritize the UPPER BODY (Face area).
+    """
+    cap = cv2.VideoCapture(video_path)
+    crops = []
+    
+    # Pick indices uniformly distributed over the track duration
+    indices = np.linspace(0, len(track_data['frames'])-1, num_samples, dtype=int)
+    
+    for idx in indices:
+        frame_id = track_data['frames'][idx]
+        bbox = track_data['boxes'][idx] # x1, y1, x2, y2
+        
+        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_id)
+        ret, frame = cap.read()
+        if not ret: continue
+        
+        x1, y1, x2, y2 = map(int, bbox)
+        
+        # Heuristic: The face is usually in the top 30-50% of the body box
+        # We crop the top half of the box to reduce background noise
+        h = y2 - y1
+        face_y2 = y1 + int(h * 0.5) 
+        
+        # Ensure bounds
+        x1, y1 = max(0, x1), max(0, y1)
+        face_y2 = min(frame.shape[0], face_y2)
+        x2 = min(frame.shape[1], x2)
+        
+        if x2 > x1 and face_y2 > y1:
+            crop = frame[y1:face_y2, x1:x2]
+            crops.append(crop)
+            
+    cap.release()
+    return crops
+
+def parse_tracking_file(filepath):
+    """Reads standard tracking txt."""
+    tracks = {} 
+    with open(filepath, 'r') as f:
+        lines = f.readlines()
+    frame_idx = 0
+    lines = [l.strip() for l in lines if l.strip()]
+    if lines[0] == '#': lines = lines[1:]
+
+    for line in lines:
+        if line == '#':
+            frame_idx += 1
+            continue
+        parts = line.split()
+        if len(parts) < 5: continue
+        tid = int(parts[0])
+        bbox = list(map(float, parts[1:5]))
+        if tid not in tracks: tracks[tid] = {'frames': [], 'boxes': [], 'id': tid}
+        tracks[tid]['frames'].append(frame_idx)
+        tracks[tid]['boxes'].append(bbox)
+    return tracks, frame_idx
+
+# --- 4. MAIN SMART STITCHER ---
+
+def smart_stitch_global(tracker_file, video_file, output_file, weights_path, known_chimp_count=None):
+    
+    # Init Model
+    reid_model = ChimpUFEWrapper(weights_path)
+    
+    print("📂 Parsing Tracks...")
+    tracks, total_frames = parse_tracking_file(tracker_file)
+    # Convert dict to list for indexing
+    track_list = sorted(tracks.values(), key=lambda x: x['frames'][0])
+    
+    # Filter out tiny tracks (noise) to speed up clustering
+    # Only keep tracks > 10 frames
+    long_tracks = [t for t in track_list if len(t['frames']) > 10]
+    short_tracks = [t for t in track_list if len(t['frames']) <= 10]
+    
+    print(f"🔍 extracted {len(long_tracks)} significant tracks (dropped {len(short_tracks)} short noise tracks).")
+    
+    # 1. Extract Representative Embeddings for every track
+    print("📸 Extracting embeddings for all tracks...")
+    track_embeddings = []
+    valid_track_indices = []
+    
+    for idx, track in enumerate(tqdm(long_tracks)):
+        crops = get_track_crops(video_file, track, num_samples=5)
+        # Get embeddings for all crops
+        embs = [reid_model.get_embedding(c) for c in crops]
+        embs = [e for e in embs if e is not None]
+        
+        if len(embs) > 0:
+            # Average the embeddings to get a single vector for the whole track
+            # Normalize after averaging
+            avg_emb = np.mean(embs, axis=0)
+            avg_emb = avg_emb / np.linalg.norm(avg_emb)
+            track_embeddings.append(avg_emb)
+            valid_track_indices.append(idx)
+        else:
+            # Track had no valid faces found
+            pass
+
+    track_embeddings = np.array(track_embeddings)
+    print(f"📊 computed embeddings for {len(track_embeddings)} tracks.")
+
+    # 2. Compute Similarity Matrix
+    n_tracks = len(track_embeddings)
+    sim_matrix = np.dot(track_embeddings, track_embeddings.T) # Cosine similarity since normalized
+    
+    # 3. Clustering
+    from sklearn.cluster import AgglomerativeClustering
+    
+    # Convert similarity to distance (1 - sim) for clustering
+    dist_matrix = 1.0 - sim_matrix
+    dist_matrix[dist_matrix < 0] = 0 # Numerical stability
+    
+    if known_chimp_count:
+        print(f"🧠 Knowing there are {known_chimp_count} chimps, forcing global clustering...")
+        # Force exactly N clusters
+        clusterer = AgglomerativeClustering(n_clusters=known_chimp_count, metric='precomputed', linkage='average')
+        labels = clusterer.fit_predict(dist_matrix)
+    else:
+        print("🧠 Auto-detecting identities based on threshold...")
+        # Use distance threshold if count is unknown (0.5 dist = 0.5 sim)
+        clusterer = AgglomerativeClustering(n_clusters=None, distance_threshold=0.5, metric='precomputed', linkage='average')
+        labels = clusterer.fit_predict(dist_matrix)
+        
+    print(f"✅ Found {len(set(labels))} unique identities.")
+
+    # 4. Apply New IDs
+    # Map old track ID -> New Cluster ID
+    id_map = {}
+    
+    # Map the clustered tracks
+    for i, list_idx in enumerate(valid_track_indices):
+        track = long_tracks[list_idx]
+        # Assign new ID (labels are 0, 1, 2...)
+        # We add 1 to make it 1-based index
+        new_id = int(labels[i]) + 1
+        id_map[track['id']] = new_id
+
+    # Map the unclustered/short tracks?
+    # Option A: Leave them as original ID (might conflict)
+    # Option B: Assign them to '999' noise
+    # Option C: Assign them to nearest cluster (Advanced) -> Skipping for now for safety
+    
+    # For short tracks or tracks with no face, we unfortunately leave them alone 
+    # OR we give them unique IDs starting after the main clusters
+    max_cluster_id = max(labels) + 1
+    
+    for t in short_tracks:
+        max_cluster_id += 1
+        id_map[t['id']] = max_cluster_id
+        
+    for idx, t in enumerate(long_tracks):
+        if t['id'] not in id_map: # These were tracks with no faces found
+            max_cluster_id += 1
+            id_map[t['id']] = max_cluster_id
+
+    # 5. Write Output
+    frame_data = {}
+    
+    # Combine lists back
+    all_tracks = long_tracks + short_tracks
+    
+    for track in all_tracks:
+        if track['id'] in id_map:
+            final_id = id_map[track['id']]
+        else:
+            final_id = track['id'] # Should be covered above
+            
+        for f_idx, box in zip(track['frames'], track['boxes']):
+            if f_idx not in frame_data: frame_data[f_idx] = []
+            box_str = " ".join(map(str, box))
+            frame_data[f_idx].append(f"{final_id} {box_str}")
+            
+    with open(output_file, 'w') as f:
+        for i in range(total_frames + 1):
+            f.write("#\n")
+            if i in frame_data:
+                for line in frame_data[i]:
+                    f.write(line + "\n")
+    print(f"💾 Saved to {output_file}")
+
+# --- EXECUTION ---
+if __name__ == "__main__":
+    
+    # ⚠️ UPDATE THESE PATHS
+    VIDEO_PATH = "../Tracking/Manual Correction/input/20241019 - 14h29.MP4"
+    TRACKER_INPUT = "../Tracking/Manual Correction/output/temp/raw_output/20241019 - 14h29.txt"
+    TRACKER_OUTPUT = "../Tracking/Manual Correction/output/temp/raw_output/20241019 - 14h29_smart_stitched_cluster.txt"
+    WEIGHTS_PATH = "assets/weights/25-08-29T11-49-28_340k.pth"
+    
+   # --- HERE IS YOUR MAGIC NUMBER ---
+    KNOWN_COUNT = 3 
+    
+    smart_stitch_global(TRACKER_INPUT, VIDEO_PATH, TRACKER_OUTPUT, WEIGHTS_PATH, known_chimp_count=KNOWN_COUNT)

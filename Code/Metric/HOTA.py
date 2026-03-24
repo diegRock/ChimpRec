@@ -260,8 +260,8 @@ def run_evaluation(tracker_file, gt_file, video_name, model_version, plot=True):
 # ==============================================================================
 if __name__ == "__main__":
     # --- CONFIGURATION ---
-    VIDEO_NAME = "13h28_StrongSort_V4"  # Change this to your video name (without extension)
-    MODEL_VERSION = "strongsort_v4"  # Change this when you improve the model!
+    VIDEO_NAME = "20241019 - 14h29_v7_bytetrack_auto_clusteredv2"  # Change this for each video you evaluate!
+    MODEL_VERSION = "v7_bytetrack_auto_clusteredv2"  # Change this when you improve the model!
     
     # Paths based on your new directory structure
     TRACKER_PATH = f"data/predictions/{VIDEO_NAME}.txt"

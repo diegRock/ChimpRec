@@ -144,7 +144,7 @@ if __name__ == "__main__":
 
     # --- Generate Plots ---
     # Plot history for one video
-    plotter.plot_progress_over_time("20241019 - 14h29")
+    plotter.plot_progress_over_time("20241002 - 12h28")
     
     # Compare multiple videos for the latest model
     # plotter.plot_radar_comparison("v1_baseline")

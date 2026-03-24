@@ -8,6 +8,8 @@ __pycache__/
 *.zip
 *.npy
 
+.venv/
+
 Code/Sleap/
 Code/Scripts/
 Code/COCO_To_Sleap/
@@ -20,3 +22,5 @@ ChimpVideos/
 Code/Metric/results/
 Code/PostProcessing/ChimpUFE/
 Code/chimplib/deep_sort/detections/
+ChimpPic/
+ChimpVideo/

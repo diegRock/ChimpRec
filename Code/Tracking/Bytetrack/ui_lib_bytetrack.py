@@ -1,11 +1,7 @@
 import sys
 
 # change the path below !!!
-<<<<<<<< HEAD:Code/Tracking/deep_sort/Manual Correction/ui_lib.py
-sys.path.append("/etinfo/users/2024/trixen/Documents/Master_thesis/ChimpRec/Code/chimplib")
-========
-sys.path.append("/home/diego/Desktop/ChimpRec/ChimpRec/Code/chimplib/")
->>>>>>>> origin/diego:Code/Tracking/Bytetrack/ui_lib_bytetrack.py
+sys.path.append("../../chimplib/")
 import tempfile
 import sys
 import os
@@ -118,24 +114,6 @@ class modification_reader:
         self.read()
 
     def _parse_token(self, token):
-<<<<<<<< HEAD:Code/Tracking/deep_sort/Manual Correction/ui_lib.py
-        # token examples: "10", "10@650-1000", "10@650-", "10@-800"
-        if "*" not in token:
-            return token, None, None
-        id_part, rng = token.split("*", 1)
-========
-        # token examples: "10", "10,11", "10*650-1000", "10,11*650-"
-        
-        # Check if this token has a time range (marked by *)
-        if "*" not in token:
-            # No range, just IDs (potentially comma separated like "1,2,3")
-            ids = token.split(',')
-            return ids, None, None
-            
-        id_part, rng = token.split("*", 1)
-        
-        # Parse the range part
->>>>>>>> origin/diego:Code/Tracking/Bytetrack/ui_lib_bytetrack.py
         if "-" in rng:
             start_s, end_s = rng.split("-", 1)
             start = int(start_s) if start_s else 0
@@ -143,15 +121,7 @@ class modification_reader:
         else:
             start = int(rng)
             end = float("inf")
-<<<<<<<< HEAD:Code/Tracking/deep_sort/Manual Correction/ui_lib.py
-        return id_part, start, end
-========
-            
-        # Parse the ID part (split by commas)
-        ids = id_part.split(',')
-        
-        return ids, start, end
->>>>>>>> origin/diego:Code/Tracking/Bytetrack/ui_lib_bytetrack.py
+
 
     def read(self):
         parsed_content = []
@@ -161,26 +131,12 @@ class modification_reader:
                 if len(line) < 1:
                     continue
                 if ":" in line:  # name present
-                    name, rhs = line.split(": ", 1)
-<<<<<<<< HEAD:Code/Tracking/deep_sort/Manual Correction/ui_lib.py
-========
-                    
-                    # Handle SWAP separately first
->>>>>>>> origin/diego:Code/Tracking/Bytetrack/ui_lib_bytetrack.py
+
                     if name.upper() == "SWAP":
                         frame_count, swap_id_1, swap_id_2 = rhs.split(" ")
                         for a, b in [(swap_id_1, swap_id_2), (swap_id_2, swap_id_1)]:
                             self.swaps.setdefault(a, []).append((int(frame_count), b))
                         continue
-<<<<<<<< HEAD:Code/Tracking/deep_sort/Manual Correction/ui_lib.py
-                    tokens = rhs.split(" ")
-                    for tok in tokens:
-                        cid, start, end = self._parse_token(tok)
-                        if start is None:  # global assignment
-                            self.id_to_name_global[cid] = name
-                        else:
-                            self.id_to_name_intervals.setdefault(cid, []).append((name, start, end))
-========
                     
                     # Normalize spaces around commas: "1, 2, 3" -> "1,2,3"
                     rhs = re.sub(r'\s*,\s*', ',', rhs)
@@ -213,16 +169,7 @@ class modification_reader:
                             else:
                                 self.id_to_name_intervals.setdefault(cid, []).append((name, start, end))
                                 
->>>>>>>> origin/diego:Code/Tracking/Bytetrack/ui_lib_bytetrack.py
-                    parsed_content.append([name, tokens])
-                else:
-                    name = f"UNK_{unknown_id_index}"
-                    parsed_content.append([name, line.split(" ")])
-                    unknown_id_index += 1
-<<<<<<<< HEAD:Code/Tracking/deep_sort/Manual Correction/ui_lib.py
-========
-        
->>>>>>>> origin/diego:Code/Tracking/Bytetrack/ui_lib_bytetrack.py
+
         if self.rewrite:
             content = ""
             for name, numbers in parsed_content:
@@ -230,10 +177,7 @@ class modification_reader:
             with open(self.text_file_path, "w") as f:
                 f.write(content)
         self.data = parsed_content
-<<<<<<<< HEAD:Code/Tracking/deep_sort/Manual Correction/ui_lib.py
 
-========
->>>>>>>> origin/diego:Code/Tracking/Bytetrack/ui_lib_bytetrack.py
 """
 class modification_reader:
     
@@ -540,6 +484,22 @@ def perform_tracking(input_video_path, output_text_file_path, detection_model, c
             if not modified:
                 f.write("\n")
 
+# def mux_audio(original_video, processed_video, output_with_audio):
+#     """
+#     Combines processed video stream with the original audio stream.
+#     If output_with_audio equals processed_video, writes to a temp file
+#     and atomically replaces the processed file on success.
+#     """
+#     same_path = os.path.abspath(processed_video) == os.path.abspath(output_with_audio)
+#     temp_out = output_with_audio
+#     if same_path:
+#         suffix = ".mux.tmp.mp4"
+#         temp_fd, temp_out = tempfile.mkstemp(suffix=suffix, dir=os.path.dirname(output_with_audio))
+#         os.close(temp_fd)
+
+#         cap.release()
+#         cv2.destroyAllWindows()
+
 def mux_audio(original_video, processed_video, output_with_audio):
     """
     Combines processed video stream with the original audio stream.
@@ -553,25 +513,6 @@ def mux_audio(original_video, processed_video, output_with_audio):
         temp_fd, temp_out = tempfile.mkstemp(suffix=suffix, dir=os.path.dirname(output_with_audio))
         os.close(temp_fd)
 
-<<<<<<<< HEAD:Code/Tracking/deep_sort/Manual Correction/ui_lib.py
-        cap.release()
-        cv2.destroyAllWindows()
-
-def mux_audio(original_video, processed_video, output_with_audio):
-    """
-    Combines processed video stream with the original audio stream.
-    If output_with_audio equals processed_video, writes to a temp file
-    and atomically replaces the processed file on success.
-    """
-    same_path = os.path.abspath(processed_video) == os.path.abspath(output_with_audio)
-    temp_out = output_with_audio
-    if same_path:
-        suffix = ".mux.tmp.mp4"
-        temp_fd, temp_out = tempfile.mkstemp(suffix=suffix, dir=os.path.dirname(output_with_audio))
-        os.close(temp_fd)
-
-========
->>>>>>>> origin/diego:Code/Tracking/Bytetrack/ui_lib_bytetrack.py
     cmd = [
         "ffmpeg",
         "-y",
@@ -580,7 +521,8 @@ def mux_audio(original_video, processed_video, output_with_audio):
         "-map", "0:v:0",
         "-map", "1:a:0?",
         "-c:v", "copy",
-        "-c:a", "copy",
+        "-c:a", "aac",              # re-encode audio to AAC
+        "-b:a", "192k",             # (optional: set audio bitrate)
         temp_out,
     ]
     subprocess.run(cmd, check=True)

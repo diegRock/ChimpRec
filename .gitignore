@@ -1,27 +1,35 @@
-Code/new_venv
-
-# Ignorer les fichiers compilés Python
+# Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-*.zip
 *.npy
+*.npz
+*.zip
 
+# Virtual environments (local or symlinked)
 .venv/
+venv/
+Code/new_venv/
 
+# Data & symlinked datasets
+ChimpPic/
+ChimpVideos/
+
+# Project-specific heavy folders
+logs/
+Models/
+
+# SLEAP & YOLO pipelines
 Code/Sleap/
 Code/Scripts/
 Code/COCO_To_Sleap/
-Code/Sleap
 Code/Yolo_To_Sleap/
-Code/Metric/data/predictions/
-Code/Metric/data/ground_truth/
-Code/Metric/docs/
-ChimpVideos/
-Code/Metric/results/
 Code/PostProcessing/ChimpUFE/
 Code/chimplib/deep_sort/detections/
 Code/Tracking/ChimpUFE/
-ChimpPic/
-ChimpVideos/
+
+# Metrics
+Code/Metric/data/
+Code/Metric/results/
+Code/Metric/docs/

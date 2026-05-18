@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Local model weights (download / copy from upstream sources via
+# pipeline_lib.ensure_weights()).
+weights/
+
+# Pipeline outputs
+results/
+auto_label_outputs/
+ChimpPic/

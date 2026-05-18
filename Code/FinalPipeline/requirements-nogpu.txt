@@ -1,0 +1,31 @@
+# Requirements for the Final Pipeline notebook (CPU-only version)
+#
+# Install with:
+#   pip install -r requirements-nogpu.txt
+#
+# CPU-only — suitable for testing without a GPU (inference will be slow).
+#
+# System dependency (not pip-installable):
+#   ffmpeg  — required for audio muxing in mux_audio()
+#             Install via: sudo apt install ffmpeg  (Debian/Ubuntu)
+#                      or: brew install ffmpeg      (macOS)
+
+# --- PyTorch (CPU-only) ---
+torch==2.7.0
+torchvision==0.22.0
+
+# --- Computer vision ---
+opencv-python==4.13.0.92
+Pillow==12.2.0
+
+# --- Object detection / tracking ---
+ultralytics==8.3.146
+
+# Re-ID backbone used by ui_lib_bytetrack (DeepSort appearance features)
+torchreid>=0.2.5
+
+# --- Utilities ---
+numpy==2.2.6
+tqdm==4.67.3
+scipy==1.15.3
+lap==0.5.13

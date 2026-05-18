@@ -178,9 +178,9 @@ Then execute the three steps in order:
 
 ## Obtaining model weights
 
-Model weights are **not stored in this repository** (too large for GitHub). Place the three `.pt`/`.pth` files under `weights/` before running the pipeline. Possible sources:
+Model weights are **not stored in this repository** (too large for GitHub). Place the three `.pt`/`.pth` files under `weights/` before running the pipeline. Download source:
 
-| Option | When to use |
+| Option | Link |
 |--------|-------------|
 | **Google Drive** | Find all the weights following this link: [Download]](https://drive.google.com/drive/folders/1flt3_ifyvCKNnm3gnPVIodq9-6n38-R7?usp=sharing) |
 

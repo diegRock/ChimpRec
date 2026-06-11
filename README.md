@@ -30,10 +30,17 @@ All the dependencies necessary are listed in the file `./requirements.txt`. To e
 
 On Windows
 ```bash
-$python3.10 -m venv venv
-$./<venv name>/Scripts/activate 
-$pip install -r Code/requirements.txt
+python3.10 -m venv .venv
+./.venv/Scripts/activate 
+pip install -r Code/requirements.txt
  ```
+
+On Linux
+```bash
+python3.10 -m venv .venv
+source .venv/bin/activate 
+pip install -r Code/requirements.txt
+```
 
 ![Alt text](./cover.webp)
 

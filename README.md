@@ -1,49 +1,97 @@
 # ChimpRec
 
-This repository is the source code related to the Master thesis project realised by Théodore Cousin and Julien Demeure studying at UCLouvain (Belgium).
+This repository contains the source code for a Master thesis project realised by Théodore Cousin and Julien Demeure at UCLouvain (Belgium).
 
-This thesis presents the development of a computer vision architecture to automatically detect, track, and recognise individual chimpanzees in video footage. The project was designed to support the doctoral research of Calogero Montedoro, who studies how environmental conditions influence the social development of chimpanzees. By replacing manual identification with an automated system, the goal is to make behavioural studies more scalable and less time-consuming. The architecture is modular and combines body and face detection, identity recognition, and object tracking. We used deep learning models such as YOLOv8 and InceptionResNetV1, which were adapted to the specific visual challenges posed by chimpanzee imagery. A correction tool was also developed to let users manually fix tracking errors and assign identities when the models are uncertain. Although some limitations remain, especially in the recognition step, the system performs well overall and can already be used in a semi-automated way. Corrected videos can also be reused to train better models in the future.
+The project develops a modular computer vision pipeline to detect, track, and recognise individual chimpanzees in video footage. It combines body detection, face detection, facial recognition, and tracking, with a manual correction tool for refining outputs where model performance is uncertain.
 
-The following is the structure of the project. The central library, `chimplib`, serves as the core module used across the entire codebase. All other components in the project rely on and import functions from this library.
+The central codebase is located in `Code/`, while the trained models are stored in `Models/`.
+
+## Repository structure
 
 ```
-Code/
-├── Body_detection/
-│   └── Metric/
-├── chimplib/
-├── Face_detection/
-├── Final pipeline/
-├── recognition/
-├── Tracking/
-│   └── Manual Correction/
-Models/
-├── Body Detection/
-├── Face Detection/
-└── Facial Recognition/
+ChimpRec/
+├── ChimpPic/
+├── ChimpVideos/
+├── Code/
+│   ├── Body_detection/
+│   ├── Face_detection/
+│   ├── FinalPipeline/
+│   ├── Metric/
+│   ├── PostProcessing/
+│   ├── PostProcessingDualHeuristic/
+│   ├── Recognition/
+│   ├── Tracking/
+│   ├── chimplib/
+│   ├── requirements.txt
+│   └── requirements_linux.txt
+├── Models/
+│   ├── Body Detection/
+│   ├── Face Detection/
+│   ├── Face Recognition/
+|   └── Re-ID/
 ```
 
-`Code/Tracking/Manual Correction/` contains a framework directly usable to correct the output of the body detection and tracking stages in the architectures. It allows users to take profit from the work already performed eventhough the whole architecture isn't functional yet.
+### Key components
 
-`Models` contains all the trained models that we came up with. For the body and face detection tasks, `YOLOv8s` is the model offering the best performance. In the case of facial recognition, the fully connected approach demonstrated better results.
+- `Code/chimplib/` - core library shared across the repository.
+- `Code/Body_detection/` - body detector training, evaluation, and inference.
+- `Code/Face_detection/` - face detector training, evaluation, and inference.
+- `Code/Recognition/` - face recognition and identity assignment.
+- `Code/Tracking/` - tracking pipeline and manual correction utilities.
+- `Code/FinalPipeline/` - end-to-end pipeline integration and final orchestration.
+- `Code/Metric/` - evaluation metrics and performance analysis.
+- `Code/PostProcessing/` and `Code/PostProcessingDualHeuristic/` - result refinement and heuristic-based post-processing.
 
-All the dependencies necessary are listed in the file `./requirements.txt`. To execute the code. Create a python virtual environment, activate it, and install all the dependencies:
+### Models
+
+- `Models/Body Detection/` - body detection model weights.
+  - Includes `Body_detection_model`, the best YOLO_v8s body detector for chimpanzee body detection.
+- `Models/Face Detection/` - face detection model weights.
+  - Includes `yolox_best_only_model`, the face detector downloaded from the [ChimpUFE](https://www.robots.ox.ac.uk/~vgg/research/ChimpUFE/) GitHub repository used to detect chimpanzee faces.
+- `Models/Face Recognition/` - facial recognition model weights.
+  - Includes `facenet_16_layers_fc.pth`, the face recognition model from last year.
+  - Includes `ChimpUFE_finetuned`, our fine-tuned ChimpUFE model trained specifically for the 20 chimpanzee identities in this project (perform the best).
+  - Includes `25-08-29T11-49-28_340k`, the DINOv2-based ChimpUFE model for universal chimpanzee face embedding backbone downloaded from the [ChimpUFE](https://www.robots.ox.ac.uk/~vgg/research/ChimpUFE/) GitHub repository.
+- `Models/Re-ID/` - OSnet appearance re-identification model weights tracker that use reidentification (DeepSORT & StrongSORT)
+
+## Data and model downloads
+
+To run the project correctly, download the `Models` folder (1.54 Go), `ChimpPic` (4.66 Go), and `ChimpVideos`(78.46 Go) directories as shown in the repository tree from the project material:
+
+[Project Material](https://uclouvain-my.sharepoint.com/:f:/g/personal/thomas_rixen_student_uclouvain_be/IgAM7kZZgnqbToKoIta_q-2PAfRTU7FuuAJeQOcZYRXypFc?e=exYcsi)
+
+All models were trained on the Lyra supercomputer. They are large, heavy, and optimized for CUDA and high-end GPUs, so please consider this when reproducing the results.
+
+## Setup
+
+Create and activate a Python virtual environment, then install dependencies. We highly recommand to use Python3.10. To avoid depency conflict within library versions.
 
 On Windows
 ```bash
 python3.10 -m venv .venv
-./.venv/Scripts/activate 
+.\.venv\Scripts\activate
 pip install -r Code/requirements.txt
- ```
+```
 
 On Linux
 ```bash
 python3.10 -m venv .venv
-source .venv/bin/activate 
+source .venv/bin/activate
 pip install -r Code/requirements.txt
 ```
 
-![Alt text](./cover.webp)
+## Acknowledgements
 
-# License
+- Computational resources have been provided by the Consortium des Équipements de Calcul Intensif (CÉCI), funded by the Fonds de la Recherche Scientifique de Belgique (F.R.S.-FNRS) under Grant No. 2.5020.11 and by the Walloon Region.
+- This project draws on the work of several open-source repositories and research projects, including:
+  - [ChimpUFE](https://www.robots.ox.ac.uk/~vgg/research/ChimpUFE/) for universal chimpanzee face embedding research.
+  - [ByteTrack](https://github.com/ifzhang/ByteTrack) for multi-object tracking.
+  - [DeepSORT](https://github.com/nwojke/deep_sort) for appearance-aware multi-object tracking.
+  - [StrongSORT](https://github.com/ultralytics/ultralytics) for robust multi-object tracking enhancements.
+  - [OSNet](https://github.com/KaiyangZhou/deep-person-reid) for lightweight person re-identification backbone architecture.
+  - [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX) for object detection.
+  - [YOLOv8](https://github.com/ultralytics/ultralytics) for object detection and model development.
+
+## License
 
 This project is licensed under the [MIT License](LICENSE).

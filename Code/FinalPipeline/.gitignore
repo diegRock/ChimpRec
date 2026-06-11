@@ -5,7 +5,8 @@ __pycache__/
 
 # Local model weights (download / copy from upstream sources via
 # pipeline_lib.ensure_weights()).
-weights/
+*pt
+*pth
 
 # Pipeline outputs
 results/

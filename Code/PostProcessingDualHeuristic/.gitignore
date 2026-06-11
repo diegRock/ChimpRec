@@ -36,7 +36,8 @@ wheels/
 Thumbs.db
 
 # Model weights (too large for git)
-weights/
+*pt
+*pth
 
 # Results and temporary outputs
 results/

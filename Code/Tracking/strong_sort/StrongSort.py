@@ -12,11 +12,11 @@ if hasattr(torch, "set_float32_matmul_precision"):
 device_str = "cuda:0" if torch.cuda.is_available() else "cpu"
 
 # Path of the body detection model
-body_model_path = "/home/ucl/ingi/trixen/ChimpRec/Code/Tracking/strong_sort/Body_detection_models/Body_detection_model.pt"
+body_model_path = "../../../Models/Body Detection/Body_detection_model.pt"
 
 # Video paths
-input_video_directory = "/home/ucl/ingi/trixen/ChimpRec/ChimpVideo/input"
-output_video_directory = "/home/ucl/ingi/trixen/ChimpRec/ChimpVideo/Output"
+input_video_directory = "../../../ChimpVideos/input"
+output_video_directory = "../../../ChimpVideos/output"
 
 ignore_S1 = []  # step 1
 ignore_S2 = []  # step 2
@@ -60,8 +60,8 @@ YOLOv8s = YOLO(body_model_path)
 YOLOv8s.to(device_str)
 use_half = device_str.startswith("cuda")
 # StrongSORT initialization (FP16 if on GPU)
-reid_weights_path = "/home/ucl/ingi/trixen/ChimpRec/Code/Tracking/strong_sort/Re-ID_models/osnet_ain_x1_0_imagenet.pth"
-configuration_file_path = "/home/ucl/ingi/trixen/ChimpRec/Code/Tracking/strong_sort/configs/strong_sort.yaml"
+reid_weights_path = "../../../Models/Re-ID/osnet_ain_x1_0_imagenet.pth"
+configuration_file_path = "./configs/strong_sort.yaml"
 strongsort = build_strongsort(
     reid_weights=reid_weights_path,
     device=device_str,

@@ -1,8 +1,8 @@
 import sys
 
 # Add your chimplib and boxmot repo to PYTHONPATH
-sys.path.append("/home/ucl/ingi/trixen/ChimpRec/Code/chimplib")
-sys.path.append("/home/ucl/ingi/trixen/ChimpRec/Code/chimplib/boxmot")
+sys.path.append("../../chimplib")
+sys.path.append("../../chimplib/boxmot")
 
 import os
 import cv2
@@ -20,7 +20,7 @@ import shutil
 from boxmot.tracker_zoo import create_tracker
 
 # Optional: point to the StrongSORT YAML config inside your boxmot clone
-BOXMOT_ROOT = "/home/ucl/ingi/trixen/ChimpRec/Code/chimplib/boxmot"
+BOXMOT_ROOT = "../../chimplib/boxmot"
 FFMPEG_BIN = os.environ.get("FFMPEG_BIN", "ffmpeg")
 STRONGSORT_CFG = os.path.join(
     BOXMOT_ROOT, "boxmot", "trackers", "strongsort", "configs", "strongsort.yaml"

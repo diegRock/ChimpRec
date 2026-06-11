@@ -1,7 +1,7 @@
 import sys
 
 # change the path below !!!
-sys.path.append("/home/diego/Desktop/ChimpRec/ChimpRec/Code/chimplib/")
+sys.path.append("../../chimplib/")
 import tempfile
 import re
 import sys

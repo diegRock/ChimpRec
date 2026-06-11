@@ -15,7 +15,7 @@ if hasattr(torch, "set_float32_matmul_precision"):
     torch.set_float32_matmul_precision("high")
 
 # Add Metric folder to import hota_eval
-PROJECT_ROOT = Path(__file__).resolve().parents[2]  # /home/ucl/ingi/trixen/ChimpRec/Code
+PROJECT_ROOT = Path(__file__).resolve().parents[2] 
 METRIC_DIR = PROJECT_ROOT / "Metric"
 sys.path.append(str(METRIC_DIR))
 

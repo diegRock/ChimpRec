@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Replace with your actual path to history.json or the pasted JSON data file
-HISTORY_PATH = "/home/ucl/ingi/trixen/ChimpRec/Code/Tracking/strong_sort/results/history.json"
+HISTORY_PATH = "./results/history.json"
 
 # If you saved the JSON above to a file, set HISTORY_PATH to that file instead.
 
@@ -34,7 +34,7 @@ plt.title("HOTA by run")
 plt.grid(alpha=0.3)
 plt.legend()
 plt.tight_layout()
-plt.savefig("/home/ucl/ingi/trixen/ChimpRec/Code/Tracking/strong_sort/results/plots/hota_by_run.png")
+plt.savefig("./results/plots/hota_by_run.png")
 plt.close()
 
 # Scatter: HOTA vs ema_alpha colored by nn_budget
@@ -46,5 +46,5 @@ plt.title("HOTA vs ema_alpha (color=nn_budget)")
 plt.colorbar(scatter, label="nn_budget")
 plt.grid(alpha=0.3)
 plt.tight_layout()
-plt.savefig("/home/ucl/ingi/trixen/ChimpRec/Code/results/plots/hota_vs_ema_alpha.png")
+plt.savefig("./results/plots/hota_vs_ema_alpha.png")
 plt.close()

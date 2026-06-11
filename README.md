@@ -28,10 +28,11 @@ Models/
 
 All the dependencies necessary are listed in the file `./requirements.txt`. To execute the code. Create a python virtual environment, activate it, and install all the dependencies:
 
+On Windows
 ```bash
-$python -m venv <venv name>
+$python3.10 -m venv venv
 $./<venv name>/Scripts/activate 
-$pip install -r requirements.txt
+$pip install -r Code/requirements.txt
  ```
 
 ![Alt text](./cover.webp)

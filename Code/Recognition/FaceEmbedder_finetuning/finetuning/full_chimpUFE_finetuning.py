@@ -761,18 +761,18 @@ def main():
     repo_root = find_repo_root(script_dir)
     db_root = Path(args.db_root).resolve() if args.db_root else (repo_root / "ChimpPic" / "face_recognition_db")
     tier3_root = Path(args.tier3_root).resolve() if args.tier3_root else None
-    out_dir = Path(args.out_dir).resolve() if args.out_dir else (script_dir / "runs" / "chimpufe_intensive")
+    out_dir = Path(args.out_dir).resolve() if args.out_dir else (script_dir / "runs" / "chimpUFE_finetuned")
     out_dir.mkdir(parents=True, exist_ok=True)
 
     chimpufe_src = (Path(args.chimpufe_src).resolve() if args.chimpufe_src
-                    else repo_root / "Code" / "Tracking" / "ChimpUFE" / "src")
+                    else repo_root / "Code" / "chimplib" / "ChimpUFE" / "src")
     pretrained_weights = (Path(args.pretrained_weights).resolve() if args.pretrained_weights
-                          else repo_root / "Code" / "Tracking" / "ChimpUFE" / "assets" / "weights" / "25-08-29T11-49-28_340k.pth")
+                          else repo_root / "Models" / "Face Recognition" / "25-08-29T11-49-28_340k.pth")
 
-    train_root   = Path(args.train_root).resolve()   if args.train_root   else (db_root / "face_crops_chimpRec" / "train")
-    val_root     = Path(args.val_root).resolve()     if args.val_root     else (db_root / "face_crops_chimpRec" / "val")
-    test_root    = db_root / "test"
-    student_root = Path(args.student_root).resolve() if args.student_root else (db_root / "student_face_crops")
+    train_root   = Path(args.train_root).resolve()   if args.train_root   else (db_root / "Tier1" / "chimpRecV1_faces" / "train")
+    val_root     = Path(args.val_root).resolve()     if args.val_root     else (db_root / "Tier1" / "chimpRecV1_faces" / "val")
+    test_root    = db_root / "Test" / "test_final"
+    student_root = Path(args.student_root).resolve() if args.student_root else (db_root / "Tier2" / "student_face_crops")
 
     print("repo_root :", repo_root)
     print("db_root   :", db_root)

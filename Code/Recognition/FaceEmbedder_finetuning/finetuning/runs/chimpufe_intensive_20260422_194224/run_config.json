@@ -1,0 +1,271 @@
+{
+  "args": {
+    "db_root": null,
+    "tier3_root": "/home/ucl/ingi/trixen/ChimpRec/ChimpPic/face_recognition_db/face_crops_frontal_65",
+    "out_dir": "/home/ucl/ingi/trixen/ChimpRec/Code/Recognition/ChimpUFE/runs/chimpufe_intensive_20260422_194224",
+    "image_size": 224,
+    "batch_size": 64,
+    "accum_steps": 1,
+    "num_workers": 12,
+    "epochs_stage1": 6,
+    "epochs_stage2": 100,
+    "warmup_epochs": 2.0,
+    "lr_stage1": 0.002,
+    "lr_backbone": 2e-05,
+    "lr_head": 0.0005,
+    "weight_decay": 0.05,
+    "grad_clip": 1.0,
+    "tier1_loss_weight": 1.0,
+    "tier2_loss_weight": 0.5,
+    "tier3_loss_weight": 0.15,
+    "tier1_sample_mult": 5.0,
+    "tier2_sample_mult": 2.0,
+    "tier3_sample_mult": 0.6,
+    "tier3_max_per_class": 80,
+    "tier2_val_fraction": 0.15,
+    "use_arcface": true,
+    "arc_s": 30.0,
+    "arc_m": 0.3,
+    "use_ema": true,
+    "ema_decay": 0.9995,
+    "early_stopping_patience": 20,
+    "seed": 42,
+    "pretrained_weights": null,
+    "chimpufe_src": null,
+    "resume": null,
+    "compile": false
+  },
+  "device": "cuda",
+  "gpu_name": "NVIDIA RTX 6000 Ada Generation",
+  "torch_version": "2.7.1+cu128",
+  "cuda_version": "12.8",
+  "seed": 42,
+  "class_to_idx": {
+    "amadi": 0,
+    "banalia": 1,
+    "binasera": 2,
+    "djiku": 3,
+    "ivan": 4,
+    "jeje": 5,
+    "kalemi": 6,
+    "kassongo": 7,
+    "kira": 8,
+    "lwama": 9,
+    "malago": 10,
+    "maniema": 11,
+    "mazingira": 12,
+    "muke": 13,
+    "nganja": 14,
+    "nzuri": 15,
+    "penda": 16,
+    "talisa": 17,
+    "tanganica": 18,
+    "tingitingi": 19
+  },
+  "tier_loss_weights": {
+    "1": 1.0,
+    "2": 0.5,
+    "3": 0.15
+  },
+  "tier_sample_mults": {
+    "1": 5.0,
+    "2": 2.0,
+    "3": 0.6
+  },
+  "tier3_max_per_class": 80,
+  "tier2_val_fraction": 0.15,
+  "dataset_sizes": {
+    "train_tier1": 867,
+    "train_tier2": 448,
+    "train_tier3": 890,
+    "train_total": 2205,
+    "val_tier1": 227,
+    "val_tier2": 82,
+    "val_total": 309,
+    "test_held_out": 132
+  },
+  "per_class_train_counts": {
+    "amadi": {
+      "tier1": 56,
+      "tier2": 21,
+      "tier3": 79
+    },
+    "banalia": {
+      "tier1": 55,
+      "tier2": 33,
+      "tier3": 80
+    },
+    "binasera": {
+      "tier1": 44,
+      "tier2": 48,
+      "tier3": 80
+    },
+    "djiku": {
+      "tier1": 49,
+      "tier2": 3,
+      "tier3": 25
+    },
+    "ivan": {
+      "tier1": 51,
+      "tier2": 2,
+      "tier3": 55
+    },
+    "jeje": {
+      "tier1": 36,
+      "tier2": 18,
+      "tier3": 28
+    },
+    "kalemi": {
+      "tier1": 40,
+      "tier2": 9,
+      "tier3": 80
+    },
+    "kassongo": {
+      "tier1": 31,
+      "tier2": 21,
+      "tier3": 24
+    },
+    "kira": {
+      "tier1": 43,
+      "tier2": 41,
+      "tier3": 51
+    },
+    "lwama": {
+      "tier1": 49,
+      "tier2": 8,
+      "tier3": 21
+    },
+    "malago": {
+      "tier1": 42,
+      "tier2": 2,
+      "tier3": 60
+    },
+    "maniema": {
+      "tier1": 44,
+      "tier2": 15,
+      "tier3": 19
+    },
+    "mazingira": {
+      "tier1": 41,
+      "tier2": 15,
+      "tier3": 5
+    },
+    "muke": {
+      "tier1": 41,
+      "tier2": 40,
+      "tier3": 58
+    },
+    "nganja": {
+      "tier1": 33,
+      "tier2": 13,
+      "tier3": 16
+    },
+    "nzuri": {
+      "tier1": 44,
+      "tier2": 20,
+      "tier3": 16
+    },
+    "penda": {
+      "tier1": 48,
+      "tier2": 17,
+      "tier3": 80
+    },
+    "talisa": {
+      "tier1": 40,
+      "tier2": 38,
+      "tier3": 27
+    },
+    "tanganica": {
+      "tier1": 42,
+      "tier2": 42,
+      "tier3": 6
+    },
+    "tingitingi": {
+      "tier1": 38,
+      "tier2": 42,
+      "tier3": 80
+    }
+  },
+  "per_class_val_counts": {
+    "amadi": {
+      "tier1": 14,
+      "tier2": 4
+    },
+    "banalia": {
+      "tier1": 14,
+      "tier2": 6
+    },
+    "binasera": {
+      "tier1": 11,
+      "tier2": 8
+    },
+    "djiku": {
+      "tier1": 13,
+      "tier2": 1
+    },
+    "ivan": {
+      "tier1": 13,
+      "tier2": 1
+    },
+    "jeje": {
+      "tier1": 10,
+      "tier2": 3
+    },
+    "kalemi": {
+      "tier1": 10,
+      "tier2": 2
+    },
+    "kassongo": {
+      "tier1": 8,
+      "tier2": 4
+    },
+    "kira": {
+      "tier1": 11,
+      "tier2": 7
+    },
+    "lwama": {
+      "tier1": 13,
+      "tier2": 1
+    },
+    "malago": {
+      "tier1": 11,
+      "tier2": 1
+    },
+    "maniema": {
+      "tier1": 12,
+      "tier2": 3
+    },
+    "mazingira": {
+      "tier1": 11,
+      "tier2": 3
+    },
+    "muke": {
+      "tier1": 11,
+      "tier2": 7
+    },
+    "nganja": {
+      "tier1": 9,
+      "tier2": 2
+    },
+    "nzuri": {
+      "tier1": 12,
+      "tier2": 4
+    },
+    "penda": {
+      "tier1": 12,
+      "tier2": 3
+    },
+    "talisa": {
+      "tier1": 11,
+      "tier2": 7
+    },
+    "tanganica": {
+      "tier1": 11,
+      "tier2": 7
+    },
+    "tingitingi": {
+      "tier1": 10,
+      "tier2": 8
+    }
+  }
+}

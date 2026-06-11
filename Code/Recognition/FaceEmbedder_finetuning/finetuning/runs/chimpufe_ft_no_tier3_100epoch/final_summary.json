@@ -1,0 +1,38 @@
+{
+  "best_val_top1": 0.94123774766922,
+  "final_val_top1": 0.94123774766922,
+  "final_val_top5": 0.9733455896377563,
+  "final_val_loss": 0.3056622507981956,
+  "final_val_f1_macro": 0.9475561521574747,
+  "final_val_f1_weighted": 0.9484092263402711,
+  "final_val_precision_macro": 0.9493418642760748,
+  "final_val_recall_macro": 0.9483171945014048,
+  "final_val_per_tier_acc": {
+    "0": 0.9478827361563518
+  },
+  "final_val_per_class_acc": {
+    "amadi": 1.0,
+    "banalia": 1.0,
+    "binasera": 0.9473684210526315,
+    "djiku": 1.0,
+    "ivan": 1.0,
+    "jeje": 1.0,
+    "kalemi": 0.9166666666666666,
+    "kassongo": 0.9090909090909091,
+    "kira": 0.8888888888888888,
+    "lwama": 1.0,
+    "malago": 1.0,
+    "maniema": 0.8666666666666667,
+    "mazingira": 0.9285714285714286,
+    "muke": 0.8888888888888888,
+    "nganja": 0.9090909090909091,
+    "nzuri": 1.0,
+    "penda": 0.9333333333333333,
+    "talisa": 0.9444444444444444,
+    "tanganica": 0.8888888888888888,
+    "tingitingi": 0.9444444444444444
+  },
+  "num_classes": 20,
+  "trainable_params": 85742592,
+  "total_params": 85742592
+}

@@ -1123,9 +1123,9 @@ def parse_args():
     parser.add_argument("--min-brightness", type=float, default=35.0, help="Min grayscale mean")
     parser.add_argument("--max-brightness", type=float, default=220.0, help="Max grayscale mean")
     parser.add_argument("--front-only", action="store_true", help="Keep only faces likely looking at the camera")
-    parser.add_argument("--min-front-score", type=float, default=0.62, help="Frontal score threshold in [0,1]")
+    parser.add_argument("--min-front-score", type=float, default=0.0, help="Frontal score threshold in [0,1] (0 disables frontal thresholding by default)")
     parser.add_argument("--require-eyes", action="store_true", help="Require visible eyes in the face crop (stricter) using OpenCV cascade")
-    parser.add_argument("--min-eye-detections", type=int, default=1, help="Minimum number of detected eyes when --require-eyes is enabled")
+    parser.add_argument("--min-eye-detections", type=int, default=0, help="Minimum number of detected eyes when --require-eyes is enabled (0 disables by default)")
     parser.add_argument("--min-eye-rel-size", type=float, default=0.05, help="Minimum eye blob size relative to face crop (chimp-eye heuristic)")
 
     parser.add_argument("--frame-step", type=int, default=1, help="Keep one frame every N frames")
@@ -1154,8 +1154,8 @@ def main():
         raise ValueError("--frame-step must be >= 1")
     if args.min_front_score < 0.0 or args.min_front_score > 1.0:
         raise ValueError("--min-front-score must be in [0, 1]")
-    if args.min_eye_detections < 1:
-        raise ValueError("--min-eye-detections must be >= 1")
+    if args.min_eye_detections < 0:
+        raise ValueError("--min-eye-detections must be >= 0")
     if args.min_eye_rel_size <= 0.0 or args.min_eye_rel_size >= 0.5:
         raise ValueError("--min-eye-rel-size must be in (0, 0.5)")
     if args.min_face_area_ratio < 0.0 or args.max_face_area_ratio > 1.0 or args.min_face_area_ratio >= args.max_face_area_ratio:

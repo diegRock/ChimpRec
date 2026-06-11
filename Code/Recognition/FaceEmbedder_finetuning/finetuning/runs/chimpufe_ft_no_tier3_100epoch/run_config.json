@@ -1,0 +1,278 @@
+{
+  "args": {
+    "db_root": "/home/ucl/ingi/trixen/ChimpRec/ChimpPic/face_recognition_db",
+    "tier3_root": null,
+    "out_dir": "Code/Recognition/ChimpUFE/runs/chimpufe_ft_no_tier3_debug",
+    "image_size": 224,
+    "batch_size": 64,
+    "accum_steps": 1,
+    "num_workers": 4,
+    "epochs_stage1": 6,
+    "epochs_stage2": 100,
+    "warmup_epochs": 2.0,
+    "lr_stage1": 0.002,
+    "lr_backbone": 2e-05,
+    "lr_head": 0.0005,
+    "weight_decay": 0.05,
+    "grad_clip": 1.0,
+    "tier1_loss_weight": 1.0,
+    "tier2_loss_weight": 1.0,
+    "tier3_loss_weight": 0.0,
+    "tier1_sample_mult": 3.0,
+    "tier2_sample_mult": 3.0,
+    "tier3_sample_mult": 0.0,
+    "tier3_max_per_class": 0,
+    "max_resample": 3.0,
+    "log_every": 1,
+    "tier2_val_fraction": 0.15,
+    "no_tier3_augmentation": false,
+    "train_root": "/home/ucl/ingi/trixen/ChimpRec/ChimpPic/face_recognition_db/chimpRecV1_faces/train",
+    "val_root": "/home/ucl/ingi/trixen/ChimpRec/ChimpPic/face_recognition_db/chimpRecV1_faces/val",
+    "student_root": "/home/ucl/ingi/trixen/ChimpRec/ChimpPic/face_recognition_db/student_face_crops",
+    "use_arcface": true,
+    "arc_s": 30.0,
+    "arc_m": 0.3,
+    "use_ema": true,
+    "ema_decay": 0.9995,
+    "early_stopping_patience": 20,
+    "seed": 42,
+    "pretrained_weights": null,
+    "chimpufe_src": null,
+    "resume": null,
+    "compile": false
+  },
+  "device": "cuda",
+  "gpu_name": "NVIDIA RTX 6000 Ada Generation",
+  "torch_version": "2.2.2+cu121",
+  "cuda_version": "12.1",
+  "seed": 42,
+  "class_to_idx": {
+    "amadi": 0,
+    "banalia": 1,
+    "binasera": 2,
+    "djiku": 3,
+    "ivan": 4,
+    "jeje": 5,
+    "kalemi": 6,
+    "kassongo": 7,
+    "kira": 8,
+    "lwama": 9,
+    "malago": 10,
+    "maniema": 11,
+    "mazingira": 12,
+    "muke": 13,
+    "nganja": 14,
+    "nzuri": 15,
+    "penda": 16,
+    "talisa": 17,
+    "tanganica": 18,
+    "tingitingi": 19
+  },
+  "tier_loss_weights": {
+    "1": 1.0,
+    "2": 1.0,
+    "3": 0.0
+  },
+  "tier_sample_mults": {
+    "1": 3.0,
+    "2": 3.0,
+    "3": 0.0
+  },
+  "tier3_max_per_class": 0,
+  "max_resample": 3.0,
+  "tier2_val_fraction": 0.15,
+  "dataset_sizes": {
+    "train_tier1": 866,
+    "train_tier2": 442,
+    "train_tier3": 0,
+    "train_total": 1308,
+    "val_tier1": 227,
+    "val_tier2": 80,
+    "val_total": 307,
+    "test_held_out": 139
+  },
+  "per_class_train_counts": {
+    "amadi": {
+      "tier1": 56,
+      "tier2": 21,
+      "tier3": 0
+    },
+    "banalia": {
+      "tier1": 54,
+      "tier2": 31,
+      "tier3": 0
+    },
+    "binasera": {
+      "tier1": 44,
+      "tier2": 46,
+      "tier3": 0
+    },
+    "djiku": {
+      "tier1": 49,
+      "tier2": 3,
+      "tier3": 0
+    },
+    "ivan": {
+      "tier1": 51,
+      "tier2": 2,
+      "tier3": 0
+    },
+    "jeje": {
+      "tier1": 36,
+      "tier2": 18,
+      "tier3": 0
+    },
+    "kalemi": {
+      "tier1": 40,
+      "tier2": 9,
+      "tier3": 0
+    },
+    "kassongo": {
+      "tier1": 31,
+      "tier2": 20,
+      "tier3": 0
+    },
+    "kira": {
+      "tier1": 43,
+      "tier2": 42,
+      "tier3": 0
+    },
+    "lwama": {
+      "tier1": 49,
+      "tier2": 7,
+      "tier3": 0
+    },
+    "malago": {
+      "tier1": 42,
+      "tier2": 2,
+      "tier3": 0
+    },
+    "maniema": {
+      "tier1": 44,
+      "tier2": 15,
+      "tier3": 0
+    },
+    "mazingira": {
+      "tier1": 41,
+      "tier2": 15,
+      "tier3": 0
+    },
+    "muke": {
+      "tier1": 41,
+      "tier2": 40,
+      "tier3": 0
+    },
+    "nganja": {
+      "tier1": 33,
+      "tier2": 13,
+      "tier3": 0
+    },
+    "nzuri": {
+      "tier1": 44,
+      "tier2": 20,
+      "tier3": 0
+    },
+    "penda": {
+      "tier1": 48,
+      "tier2": 17,
+      "tier3": 0
+    },
+    "talisa": {
+      "tier1": 40,
+      "tier2": 38,
+      "tier3": 0
+    },
+    "tanganica": {
+      "tier1": 42,
+      "tier2": 41,
+      "tier3": 0
+    },
+    "tingitingi": {
+      "tier1": 38,
+      "tier2": 42,
+      "tier3": 0
+    }
+  },
+  "per_class_val_counts": {
+    "amadi": {
+      "tier1": 14,
+      "tier2": 4
+    },
+    "banalia": {
+      "tier1": 14,
+      "tier2": 6
+    },
+    "binasera": {
+      "tier1": 11,
+      "tier2": 8
+    },
+    "djiku": {
+      "tier1": 13,
+      "tier2": 1
+    },
+    "ivan": {
+      "tier1": 13,
+      "tier2": 1
+    },
+    "jeje": {
+      "tier1": 10,
+      "tier2": 3
+    },
+    "kalemi": {
+      "tier1": 10,
+      "tier2": 2
+    },
+    "kassongo": {
+      "tier1": 8,
+      "tier2": 3
+    },
+    "kira": {
+      "tier1": 11,
+      "tier2": 7
+    },
+    "lwama": {
+      "tier1": 13,
+      "tier2": 1
+    },
+    "malago": {
+      "tier1": 11,
+      "tier2": 1
+    },
+    "maniema": {
+      "tier1": 12,
+      "tier2": 3
+    },
+    "mazingira": {
+      "tier1": 11,
+      "tier2": 3
+    },
+    "muke": {
+      "tier1": 11,
+      "tier2": 7
+    },
+    "nganja": {
+      "tier1": 9,
+      "tier2": 2
+    },
+    "nzuri": {
+      "tier1": 12,
+      "tier2": 3
+    },
+    "penda": {
+      "tier1": 12,
+      "tier2": 3
+    },
+    "talisa": {
+      "tier1": 11,
+      "tier2": 7
+    },
+    "tanganica": {
+      "tier1": 11,
+      "tier2": 7
+    },
+    "tingitingi": {
+      "tier1": 10,
+      "tier2": 8
+    }
+  }
+}

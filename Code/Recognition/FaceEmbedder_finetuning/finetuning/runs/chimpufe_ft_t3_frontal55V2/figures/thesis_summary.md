@@ -1,0 +1,14 @@
+# Run summary (thesis)
+- Run dir: `chimpufe_ft_t3_frontal55V2`
+- Total epochs: 46
+- Best val top-1: **0.9593**
+- Final val top-1: 0.9593
+- Final val top-5: 0.9804
+- Final val F1 (macro): 0.9656
+- Final val F1 (weighted): 0.9641
+- Trainable params: 85,742,592
+- Total params: 85,742,592
+- GPU: NVIDIA RTX 6000 Ada Generation
+- Total train images: 19533
+- Total val images: 307
+- Test held out: 140

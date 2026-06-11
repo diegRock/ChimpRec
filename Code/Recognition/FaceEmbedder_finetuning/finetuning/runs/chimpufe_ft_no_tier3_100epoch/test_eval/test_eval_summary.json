@@ -1,0 +1,147 @@
+{
+  "run_dir": "/home/ucl/ingi/trixen/ChimpRec/Code/Recognition/ChimpUFE/runs/chimpufe_ft_no_tier3_100epoch",
+  "checkpoint": "/home/ucl/ingi/trixen/ChimpRec/Code/Recognition/ChimpUFE/runs/chimpufe_ft_no_tier3_100epoch/best_model.pt",
+  "n_test_images": 500,
+  "classification_head": {
+    "top1": 0.762,
+    "top5": 0.938,
+    "precision_macro": 0.7781693436104067,
+    "recall_macro": 0.7620000000000001,
+    "f1_macro": 0.7586249932067154,
+    "precision_weighted": 0.7781693436104066,
+    "recall_weighted": 0.762,
+    "f1_weighted": 0.7586249932067152,
+    "per_class_accuracy": {
+      "amadi": 0.72,
+      "banalia": 0.92,
+      "binasera": 0.84,
+      "djiku": 0.88,
+      "ivan": 0.84,
+      "jeje": 0.8,
+      "kalemi": 0.72,
+      "kassongo": 0.24,
+      "kira": 0.96,
+      "lwama": 0.64,
+      "malago": 0.52,
+      "maniema": 0.52,
+      "mazingira": 0.8,
+      "muke": 0.88,
+      "nganja": 0.88,
+      "nzuri": 0.68,
+      "penda": 0.8,
+      "talisa": 0.88,
+      "tanganica": 0.76,
+      "tingitingi": 0.96
+    }
+  },
+  "retrieval_loo": {
+    "fine_tuned": {
+      "top1": 0.874,
+      "top5": 0.946,
+      "mAP": 0.47070910839317387,
+      "n": 500
+    },
+    "pretrained": {
+      "top1": 0.76,
+      "top5": 0.902,
+      "mAP": 0.25079452543379605,
+      "n": 500
+    }
+  },
+  "retrieval_prototype": {
+    "fine_tuned": {
+      "top1": 0.636,
+      "top5": 0.89,
+      "margin_mean": 0.11714307963848114,
+      "margin_std": 0.10674715787172318
+    },
+    "pretrained": {
+      "top1": 0.278,
+      "top5": 0.56,
+      "margin_mean": 0.04405805841088295,
+      "margin_std": 0.043845389038324356
+    }
+  },
+  "verification": {
+    "fine_tuned": {
+      "auc": 0.8338775747368421,
+      "eer": 0.24598526315789473,
+      "n_pairs": 124750
+    },
+    "pretrained": {
+      "auc": 0.6937712007017544,
+      "eer": 0.36402526315789474,
+      "n_pairs": 124750
+    }
+  },
+  "embedding_geometry": {
+    "fine_tuned": {
+      "intra_mean": 0.31185010075569153,
+      "intra_std": 0.16841457784175873,
+      "inter_mean": 0.11809904873371124,
+      "inter_std": 0.10846314579248428,
+      "separation": 0.19375105202198029,
+      "silhouette_cos": 0.10819146782159805
+    },
+    "pretrained": {
+      "intra_mean": 0.35680797696113586,
+      "intra_std": 0.16188392043113708,
+      "inter_mean": 0.24933840334415436,
+      "inter_std": 0.12632788717746735,
+      "separation": 0.1074695736169815,
+      "silhouette_cos": 0.02431681752204895
+    }
+  },
+  "image_level_accuracy": {
+    "fine_tuned_head": 0.762,
+    "fine_tuned_prototype": 0.636,
+    "pretrained_prototype": 0.278
+  },
+  "model_agreement": {
+    "both_correct": 137,
+    "ft_only_correct": 181,
+    "pt_only_correct": 2,
+    "both_wrong_same": 117,
+    "both_wrong_diff": 63
+  },
+  "top_n_accuracy": {
+    "top_1": {
+      "fine_tuned": 63.6,
+      "pretrained": 27.8
+    },
+    "top_5": {
+      "fine_tuned": 89.0,
+      "pretrained": 56.0
+    },
+    "top_10": {
+      "fine_tuned": 95.6,
+      "pretrained": 76.4
+    }
+  },
+  "ranking_agreement": {
+    "kendall_tau_mean": 0.07905263157894737,
+    "kendall_tau_std": 0.18240573231559243,
+    "top5_overlap_mean": 0.7035999999999999,
+    "top5_overlap_std": 0.16817730885713703
+  },
+  "embedding_quality": {
+    "fine_tuned": {
+      "norm_mean": 1.0,
+      "norm_std": 3.220857536234689e-08,
+      "norm_min": 0.9999998807907104,
+      "norm_max": 1.0000001192092896,
+      "pairwise_sim_mean": 0.12741774320602417,
+      "pairwise_sim_std": 0.11950431764125824,
+      "n_samples": 500
+    },
+    "pretrained": {
+      "norm_mean": 1.0,
+      "norm_std": 3.5161686895435196e-08,
+      "norm_min": 0.9999998807907104,
+      "norm_max": 1.0000001192092896,
+      "pairwise_sim_mean": 0.25450730323791504,
+      "pairwise_sim_std": 0.1303088217973709,
+      "n_samples": 500
+    }
+  }
+}

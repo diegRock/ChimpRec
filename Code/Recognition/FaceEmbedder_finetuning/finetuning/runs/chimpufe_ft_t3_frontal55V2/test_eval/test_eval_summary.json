@@ -1,0 +1,147 @@
+{
+  "run_dir": "/home/ucl/ingi/trixen/ChimpRec/Code/Recognition/ChimpUFE/runs/chimpufe_ft_t3_frontal55V2",
+  "checkpoint": "/home/ucl/ingi/trixen/ChimpRec/Code/Recognition/ChimpUFE/runs/chimpufe_ft_t3_frontal55V2/best_model.pt",
+  "n_test_images": 140,
+  "classification_head": {
+    "top1": 0.8214285714285714,
+    "top5": 0.9857142857142858,
+    "precision_macro": 0.7954166666666667,
+    "recall_macro": 0.8193452380952382,
+    "f1_macro": 0.7933239717798541,
+    "precision_weighted": 0.8176615646258504,
+    "recall_weighted": 0.8214285714285714,
+    "f1_weighted": 0.8083899981904183,
+    "per_class_accuracy": {
+      "amadi": 0.7142857142857143,
+      "banalia": 1.0,
+      "binasera": 0.625,
+      "djiku": 0.5714285714285714,
+      "ivan": 0.8571428571428571,
+      "jeje": 1.0,
+      "kalemi": 1.0,
+      "kassongo": 0.0,
+      "kira": 1.0,
+      "lwama": 0.7777777777777778,
+      "malago": 0.5555555555555556,
+      "maniema": 1.0,
+      "mazingira": 1.0,
+      "muke": 1.0,
+      "nganja": 1.0,
+      "nzuri": 0.42857142857142855,
+      "penda": 0.8571428571428571,
+      "talisa": 1.0,
+      "tanganica": 1.0,
+      "tingitingi": 1.0
+    }
+  },
+  "retrieval_loo": {
+    "fine_tuned": {
+      "top1": 0.9642857142857143,
+      "top5": 0.9857142857142858,
+      "mAP": 0.8706377317342208,
+      "n": 140
+    },
+    "pretrained": {
+      "top1": 0.8642857142857143,
+      "top5": 0.9285714285714286,
+      "mAP": 0.5707527568369356,
+      "n": 140
+    }
+  },
+  "retrieval_prototype": {
+    "fine_tuned": {
+      "top1": 0.8285714285714286,
+      "top5": 0.9571428571428572,
+      "margin_mean": 0.536698043346405,
+      "margin_std": 0.23759934306144714
+    },
+    "pretrained": {
+      "top1": 0.24285714285714285,
+      "top5": 0.5714285714285714,
+      "margin_mean": 0.04622320830821991,
+      "margin_std": 0.049725208431482315
+    }
+  },
+  "verification": {
+    "fine_tuned": {
+      "auc": 0.9683364787404897,
+      "eer": 0.07665834482499356,
+      "n_pairs": 9730
+    },
+    "pretrained": {
+      "auc": 0.8260688708684034,
+      "eer": 0.24905717122317403,
+      "n_pairs": 9730
+    }
+  },
+  "embedding_geometry": {
+    "fine_tuned": {
+      "intra_mean": 0.7008337378501892,
+      "intra_std": 0.24429795145988464,
+      "inter_mean": 0.08873587846755981,
+      "inter_std": 0.12081480771303177,
+      "separation": 0.6120978593826294,
+      "silhouette_cos": 0.5246691107749939
+    },
+    "pretrained": {
+      "intra_mean": 0.5621802806854248,
+      "intra_std": 0.18415920436382294,
+      "inter_mean": 0.3391304910182953,
+      "inter_std": 0.14153771102428436,
+      "separation": 0.22304978966712952,
+      "silhouette_cos": 0.10801693052053452
+    }
+  },
+  "image_level_accuracy": {
+    "fine_tuned_head": 0.8214285714285714,
+    "fine_tuned_prototype": 0.8285714285714286,
+    "pretrained_prototype": 0.24285714285714285
+  },
+  "model_agreement": {
+    "both_correct": 34,
+    "ft_only_correct": 82,
+    "pt_only_correct": 0,
+    "both_wrong_same": 13,
+    "both_wrong_diff": 11
+  },
+  "top_n_accuracy": {
+    "top_1": {
+      "fine_tuned": 82.85714285714286,
+      "pretrained": 24.285714285714285
+    },
+    "top_5": {
+      "fine_tuned": 95.71428571428571,
+      "pretrained": 57.142857142857146
+    },
+    "top_10": {
+      "fine_tuned": 99.28571428571429,
+      "pretrained": 77.14285714285714
+    }
+  },
+  "ranking_agreement": {
+    "kendall_tau_mean": 0.0436842105263158,
+    "kendall_tau_std": 0.16821231384931565,
+    "top5_overlap_mean": 0.4414285714285715,
+    "top5_overlap_std": 0.19415402707170493
+  },
+  "embedding_quality": {
+    "fine_tuned": {
+      "norm_mean": 1.0,
+      "norm_std": 3.10533110337019e-08,
+      "norm_min": 0.9999998807907104,
+      "norm_max": 1.0,
+      "pairwise_sim_mean": 0.11647843569517136,
+      "pairwise_sim_std": 0.18124890327453613,
+      "n_samples": 140
+    },
+    "pretrained": {
+      "norm_mean": 1.0,
+      "norm_std": 3.597503095420507e-08,
+      "norm_min": 0.9999998807907104,
+      "norm_max": 1.0000001192092896,
+      "pairwise_sim_mean": 0.34923994541168213,
+      "pairwise_sim_std": 0.15104569494724274,
+      "n_samples": 140
+    }
+  }
+}

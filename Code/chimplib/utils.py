@@ -1,5 +1,5 @@
 import sys
-sys.path.append("PATH TO /Code")
+sys.path.append("../Code")
 
 from chimplib.imports import *
 

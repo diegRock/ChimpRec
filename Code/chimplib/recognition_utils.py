@@ -1,8 +1,7 @@
 import sys
-sys.path.append("C:/Users/julie/OneDrive - UCL/Master_2/Mémoire/ChimpRec/Code")
+sys.path.append(".")
 
 from chimplib.imports import *
-#from chimplib.utils import *
 
 
 ############################ Datasets and custom model ############################
